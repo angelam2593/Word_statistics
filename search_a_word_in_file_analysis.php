@@ -15,14 +15,31 @@
     <style>
         body{
             background-image: url("img/words-blog2.jpg");
+			font-family: "Calibri";
         }
-		table, th, td {
-            border: 1px solid black;
+        table, th, td {
             border-collapse: collapse;
-            background-color: whitesmoke;
+            border: 1px solid black;
             padding: 4px 0px 4px 0px;
         }
+		i {
+			color: gray;
+		}
     </style>
+	
+	<script>
+		 var showText = function (target, message, index, interval) {
+			 if (index < message.length) {
+				 $(target).append(message[index++]);
+				 setTimeout(function () { showText(target, message, index, interval); }, interval);
+			 }
+		 }
+
+		 $(function () {
+			 document.getElementById('Lorem').style.fontWeight = "900";
+			 showText("#Lorem", "Word in FILE", 0, 100);
+		 });		
+	</script>
 </head>
 
 <body>
@@ -38,21 +55,20 @@
                 <img src="img/word_stats.png" class="img-responsive" style="margin-top: -5px;">
             </a>
         </div>
+		<a href="info.php">
+			<i class="fa fa-info-circle pull-right" aria-hidden="true" style="color: white; font-size: 25px; padding-top: 14px;"></i>
+		</a>
     </div>
 </nav>
 
-<div class="container" style="margin-top: 110px;">
-    <div class="row">
-        <div class="col-sm-12">
-			<h2><b><i>Word</i> in a file</b></h2><br><br>
-
-            <div class="col-lg-2 col-sm-2 col-md-2 col-lg-offset-1 col-md-offset-1 col-sm-offset-1">
-                <img src="img/my_documents.png" class="img-responsive">
-            </div>
-					
+<div class="container" style="margin-top: 80px;">
+    <div class="row"><br>
+        <div class="col-sm-12 col-lg-12 col-md-12 col-xs-12">
+            <a href="search_a_word_in_file.php"><i class="fa fa-arrow-left" aria-hidden="true" style="font-size: 25px; margin-top: -10px; float: left;" ></i></a>
+            <h1 class="text-center" id="Lorem"></h1>
+			<br>					
 			
 			<!-- F-CIJA ZA CITANJE NA TEXT OD PDF -->
-			
 			<?php
 				function decodeAsciiHex($input) {
 					$output = "";
@@ -365,61 +381,142 @@
 					}
 				?>
 				
-				
-				
-			<div class="col-sm-7 col-md-7 col-lg-7 text-center col-lg-offset-1 col-md-offset-1 col-sm-offset-1">
-				<table style="width:100%" class="text-center">
-				<tr>
-					<td><b>File name</b></td>
-					<td> 
-						<?php echo $_FILES["file"]["name"];	?>
-					</td>
-				</tr>
-					
+				<!-- F-CIJA ZA CITANJE NA TEXT OD MicrosoftWord FILE .DOC -->
 				<?php
-				$word = $_REQUEST['word'];
-				echo "<h3>The <b>word</b> will be searching for in the file is: " . "<strong><u>" . $word . "</u></strong></h3><br><br>";
+					function read_doc_file($filename) {
+						 if(file_exists($filename))
+						{
+							if(($fh = fopen($filename, 'r')) !== false ) 
+							{
+								$headers = fread($fh, 0xA00);
+								   $n1 = ( ord($headers[0x21C]) - 1 );
+								   $n2 = ( ( ord($headers[0x21D]) - 8 ) * 256 );
+								   $n3 = ( ( ord($headers[0x21E]) * 256 ) * 256 );
+								   $n4 = ( ( ( ord($headers[0x21F]) * 256 ) * 256 ) * 256 );
+								   $textLength = ($n1 + $n2 + $n3 + $n4);
+								   $extracted_plaintext = fread($fh, $textLength);
+								   return nl2br($extracted_plaintext);
+								}
+							}   
+						}
+				?>
+				
+				
+				
+			<div class="col-lg-8 text-center col-lg-offset-2">
+				<table style="width:100%" class="text-center">
+					
+				<?php 
+				$word = $_REQUEST['word'];				
 				
 				if ($_FILES["file"]["error"] > 0){
 					echo "<h3>Error: </h3>" . $_FILES["file"]["error"] . "<br />";
 				  } else {
 					if($_FILES["file"]["type"] == "application/pdf"){	
-						$filename = $_FILES["file"]["tmp_name"]; //ja naoga patekata kaj so e socuvan fajlot
-						$handle = fopen($filename, "r"); //go otvara fajlot za da ima pristap do sodrzinata
-						$contents = fread($handle, filesize($filename)); //ja zacuvuva sodrzinata vo promenliva
+						$filename = $_FILES["file"]["tmp_name"];
+						$handle = fopen($filename, "r");
+						$contents = fread($handle, filesize($filename));
 						$contents = pdf2text($filename);
+						check_file_font($contents);
 					}
 					else if(contains("document", $_FILES["file"]["type"])){						
 						$filename = $_FILES["file"]["tmp_name"];
 						$handle = fopen($filename, "r"); 
 						$contents = fread($handle, filesize($filename));
 						$contents = read_docx($filename);
+						check_file_font($contents);
 					}
 					else if($_FILES["file"]["type"] == "text/plain"){
 						$filename = $_FILES["file"]["tmp_name"]; 
 						$handle = fopen($filename, "r"); 
 						$contents = fread($handle, filesize($filename)); 
+						check_file_font($contents);
+						
+					}
+					else if($_FILES["file"]["type"] == "application/msword"){
+						$filename = $_FILES["file"]["tmp_name"];
+						$handle = fopen($filename, "r"); 
+						$contents = fread($handle, filesize($filename)); 
+						$contents = read_doc_file($filename);
+						check_file_font($contents);
 					}
 					else{
-						echo "NEMAME FUNKCIONALNOST ZA DRUGI TIPOVI NA FAJLOVI";
+						echo "<script> alert('There is no functionality provided for this kind of files! Please insert another type of file.');
+										   window.location ='search_a_word_in_file.php'; </script>";
 					}
 				  }
+				  
+				$flag_font = False;
+				$dol_ascii = str_split($word);
+				
+				foreach($dol_ascii as $d){
+					if(ord($d) >= 65 && ord($d) <= 122)
+						continue;
+					else{
+						$flag_font = True;
+						break;
+					}
+				}
+
+				if($flag_font == True){
+					echo "<script> alert('Enter a word in the standard font!');
+					window.location ='search_a_word_in_file.php'; </script>";
+					exit();
+				}
+				else{
+					echo "<center><h3>The <b>word</b> will be searching for in the file is: " . "<strong><u>" . $word . "</u></strong></h3></center><br><br>";
+				}
 				 
-					function contains($needle, $haystack){ //da se najde document vo toa ogromnoto ime kaj type 
+					function contains($needle, $haystack){
 						return strpos($haystack, $needle) !== false;
 					}
+					
+					function check_file_font($contents){
+						$cont = trim($contents);
+						$sodrzina = preg_split('/[\s,]+/', $cont);
+						$sodrzina = preg_replace('#[[:punct:]]#', ' ', $sodrzina);
+						$flag_font1 = False;
+						
+						foreach($sodrzina as $d){
+							
+							$posebno_zbor = str_split($d);
+								foreach($posebno_zbor as $p){
+									if(ord($p) >= 65 && ord($p) <= 122)
+										continue;
+									else if(is_numeric($p)){
+										continue;
+									}
+									else if(ord($p) == 32)
+										continue;
+									else{
+										$flag_font1 = True;
+										break;
+									}
+								}
+						}
+						
+						if($flag_font1 == True){
+							echo "<script> alert('Upload a file in the standard font!');
+								window.location ='search_a_word_in_file.php'; </script>";
+						}
+					}
 				?>
-			  
-				<tr>
+				<tr style="background-color: #D0D0D0;">
+					<td><b>File name</b></td>
+					<td> 
+						<?php echo $_FILES["file"]["name"];	?>
+					</td>
+				</tr>
+				<tr style="background-color: #D0D0D0;">
 					<th class="text-center">Word has appeared in the text</th>				
 					<td>
-						<?php																				//ova neso ne rabote
+						<?php
+							$contents = strtolower($contents);
+							$word = strtolower($word);
 							$split_strings = preg_split('/[\s,]+/', $contents);
-						
 							$test = str_replace(array('?',"!",",",";",":",".","@","#","$","%","^","&","*","(",")","[","]","{","}","<",">","/","\\","+","-","=","_","~","`","|","\'","\""), "", $contents);	
-								//samo za " i ' ne raboti
 								
-								$razdeli_test = preg_split('/[\s,]+/', $test);			//sekoj zbor da ima value
+								$razdeli_test = preg_split('/[\s,]+/', $test);
 								$counter1 = 0;
 								$word = strtolower($word);
 								
@@ -432,20 +529,13 @@
 						?>
 					</td>
 				</tr>
-				<tr>
+				<tr style="background-color: #D8D8D8;">
 					<th class="text-center">Number of total chars the word owns</th>
 					<td>
 						<?php
-							if($_FILES["file"]["type"] == "text/plain"){
-								$charsInWord =  count_chars($word,1);
-							}
-							else if($_FILES["file"]["type"] == "application/pdf"){
-								$charsInWord =  count_chars($word,1);
-							}
-							else if(contains("document", $_FILES["file"]["type"])){
-								$charsInWord =  count_chars($word,1);
-							}
+							$charsInWord =  count_chars($word,1);
 							$counter2 = 0;
+							
 							foreach($charsInWord as $key=>$value){
 								$counter2 += $value;
 							}
@@ -453,7 +543,7 @@
 						?>
 					</td>
 				</tr>
-				<tr>
+				<tr style="background-color: #E0E0E0;">
 					<th class="text-center">Number of different chars the word owns</td>
 					<td>
 						<?php
@@ -461,7 +551,7 @@
 						?>
 					</td>
 				</tr>
-				<tr>
+				<tr style="background-color: #E8E8E8;">
 					<th class="text-center">Number of numerals chars the word owns</th>
 					<td>
 						<?php
@@ -476,33 +566,59 @@
 						?>
 					</td>
 				</tr>
-				<tr>
+				<tr style="background-color: #F0F0F0;">
 					<th class="text-center">Word appears at the beginning of the sentence</th>
 					<td>
 						<?php
-							$sentences = preg_split('/(?<=[.?!])\s+(?=[a-z])/i', $contents);
-							
-							$counterBeginning = 0;
-							$counterEnd = 0;
-							foreach($sentences as $recenica){
-								$recenica = str_replace(".", "", $recenica);//da se izvadi tockata od posledniot string
-								$r = explode(" ", $recenica);
-								if(strcmp(strtolower($r[0]), $word) == 0)
-									$counterBeginning += 1;
-								else if(strcmp(strtolower($r[count($r)-1]), $word) == 0)
-									$counterEnd += 1;
-							}
-							echo $counterBeginning . " times";
-						?>
+							$remove_new_line = preg_replace('/[\ \n]+/', ' ', $contents);
+                                                           
+                            $sentences = preg_split('/(?<=[.?!])\s+(?=[a-z])/i', $contents);
+                            $contents = strtolower($contents);
+                            $word = strtolower($word);
+                            $counterBeginning = 0;                         
+                           
+                            foreach($sentences as $recenica){
+                                $recenica = str_replace(".", "", $recenica);
+                                $r = explode(" ", $recenica);                              
+                               
+                                $s = 0;
+                                $test_niza = str_split($r[0]);
+                                foreach($test_niza as $kar){
+                                    $s += ord($kar);
+                                }
+                               
+                                $s1 = 0;
+                                $test_niza1 = str_split($word);
+                                foreach($test_niza1 as $kar1){
+                                    $s1 += ord($kar1);
+                                }
+                               
+                               
+                                if(strcmp(strtolower($r[0]), strtolower($word)) == 0){
+                                    $counterBeginning ++;
+                                }
+                                else if(strcmp(strtolower($r[0]), strtolower($word)) < 0){
+                                    $s -= 23;
+                                    if($s == $s1)
+                                        $counterBeginning += 1;
+                                }
+                            }
+                           
+                            echo $counterBeginning . " times";
+                        ?>
 					</td>
 				</tr>
-				<tr>
-					<th class="text-center">Number of times the word appears at the end of the sentence</th>
+				<tr style="background-color: #F8F8F8;">
+					<th class="text-center">Word appears at the end of the sentence</th>
 					<td>
 					<?php
 						$counterEnd = 0;
+						$contents = strtolower($contents);
+							$word = strtolower($word);
 						foreach($sentences as $recenica){
-							$recenica = str_replace(".", "", $recenica);		//da se izvadi tockata od posledniot string
+							$recenica = str_replace(".", "", $recenica);
+							$recenica = str_replace("?", "", $recenica);
+							$recenica = str_replace("!", "", $recenica);
 							$r = explode(" ", $recenica);
 							if(strcmp(strtolower($r[count($r)-1]), $word) == 0)
 								$counterEnd += 1;

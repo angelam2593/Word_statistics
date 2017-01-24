@@ -1,6 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
 
-<!-- F-CIJA ZA CITANJE NA TEXT OD PDF -->
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>Word Statistics</title>
+	
+    <script src="js/jquery.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="fonts/css/font-awesome.css">
+    <link rel="stylesheet" href="fonts/css/font-awesome.min.css">
+
+    <style>
+        body{
+            background-image: url("img/words-blog2.jpg");
+			font-family: "Calibri";
+        }
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            padding: 4px 0px 4px 0px;
+        }
+		i {
+			color: gray;
+		}
+    </style>
+	
+	<script>
+		 var showText = function (target, message, index, interval) {
+			 if (index < message.length) {
+				 $(target).append(message[index++]);
+				 setTimeout(function () { showText(target, message, index, interval); }, interval);
+			 }
+		 }
+
+		 $(function () {
+			 document.getElementById('Lorem').style.fontWeight = "900";
+			 showText("#Lorem", "FILE STATISTICS", 0, 100);
+		 });		
+	</script>
+</head>
+
+<body>
+<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="home.php">
+                <img src="img/word_stats.png" class="img-responsive" style="margin-top: -5px;">
+            </a>
+        </div>
+		<a href="info.php">
+			<i class="fa fa-info-circle pull-right" aria-hidden="true" style="color: white; font-size: 25px; padding-top: 14px;"></i>
+		</a>
+    </div>
+</nav>
+
+<div class="container" style="margin-top: 80px;">
+    <div class="row">
+        <div class="col-sm-12">
+            <a href="upload_a_file.php"><i class="fa fa-arrow-left" aria-hidden="true" style="font-size: 25px; margin-top: -10px; float: left;" ></i></a>
+            <h1 class="text-center" id="Lorem"></h1>
+			<br>		
 			
+			<!-- F-CIJA ZA CITANJE NA TEXT OD PDF -->			
 			<?php
 				function decodeAsciiHex($input) {
 					$output = "";
@@ -282,241 +351,330 @@
 				}
 				?> 
 				
-<!-- F-CIJA ZA CITANJE NA TEXT OD MicrosoftWord FILE .DOC -->
-<?php
-	//NE RABOTI
-	function read_doc_file($filename) {
-		if(file_exists($filename))
-		{
-			if(($fh = fopen($filename, 'r')) !== false ) 
+	<!-- F-CIJA ZA CITANJE NA TEXT OD MicrosoftWord FILE .DOC -->
+	<?php
+		function read_doc_file($filename) {
+			if(file_exists($filename))
 			{
-				$headers = fread($fh, 0xA00);
+				if(($fh = fopen($filename, 'r')) !== false ) 
+				{
+					$headers = fread($fh, 0xA00);
+					$n1 = ( ord($headers[0x21C]) - 1 );
+					$n2 = ( ( ord($headers[0x21D]) - 8 ) * 256 );
+					$n3 = ( ( ord($headers[0x21E]) * 256 ) * 256 );
+					$n4 = ( ( ( ord($headers[0x21F]) * 256 ) * 256 ) * 256 );
+					$textLength = ($n1 + $n2 + $n3 + $n4);
 
-				 // 1 = (ord(n)*1) ; Document has from 0 to 255 characters
-				$n1 = ( ord($headers[0x21C]) - 1 );
-
-				// 1 = ((ord(n)-8)*256) ; Document has from 256 to 63743 characters
-				$n2 = ( ( ord($headers[0x21D]) - 8 ) * 256 );
-
-				// 1 = ((ord(n)*256)*256) ; Document has from 63744 to 16775423 characters
-				$n3 = ( ( ord($headers[0x21E]) * 256 ) * 256 );
-
-				// 1 = (((ord(n)*256)*256)*256) ; Document has from 16775424 to 4294965504 characters
-				$n4 = ( ( ( ord($headers[0x21F]) * 256 ) * 256 ) * 256 );
-
-				// Total length of text in the document
-				$textLength = ($n1 + $n2 + $n3 + $n4);
-
-				$extracted_plaintext = fread($fh, $textLength);
-
-				// simple print character stream without new lines
-				//echo $extracted_plaintext;
-
-				// if you want to see your paragraphs in a new line, do this
-				return nl2br($extracted_plaintext);
-				// need more spacing after each paragraph use another nl2br
-			}
-		}   
-	}
-?>
+					$extracted_plaintext = fread($fh, $textLength);
+					return nl2br($extracted_plaintext);
+				}
+			}   
+		}
+	?>
 				
-<!-- F-CIJA ZA CITANJE NA TEXT OD MicrosoftWord FILE .DOCX -->
-<?php
-	function read_docx($filename){
-		$striped_content = '';
-		$content = '';
-		if(!$filename || !file_exists($filename)) return false;
-		$zip = zip_open($filename);
-		if (!$zip || is_numeric($zip)) return false;
-		while ($zip_entry = zip_read($zip)) {
-			if (zip_entry_open($zip, $zip_entry) == FALSE) continue;
-			if (zip_entry_name($zip_entry) != "word/document.xml") continue;
-			$content .= zip_entry_read($zip_entry, zip_entry_filesize($zip_entry));
-		zip_entry_close($zip_entry);
-		}
-		zip_close($zip);      
-		$content = str_replace('</w:r></w:p></w:tc><w:tc>', " ", $content);
-		$content = str_replace('</w:r></w:p>', "\r\n", $content);
-		$striped_content = strip_tags($content);
+	<!-- F-CIJA ZA CITANJE NA TEXT OD MicrosoftWord FILE .DOCX -->
+	<?php
+		function read_docx($filename){
+			$striped_content = '';
+			$content = '';
+			if(!$filename || !file_exists($filename)) return false;
+			$zip = zip_open($filename);
+			if (!$zip || is_numeric($zip)) return false;
+			while ($zip_entry = zip_read($zip)) {
+				if (zip_entry_open($zip, $zip_entry) == FALSE) continue;
+				if (zip_entry_name($zip_entry) != "word/document.xml") continue;
+				$content .= zip_entry_read($zip_entry, zip_entry_filesize($zip_entry));
+			zip_entry_close($zip_entry);
+			}
+			zip_close($zip);      
+			$content = str_replace('</w:r></w:p></w:tc><w:tc>', " ", $content);
+			$content = str_replace('</w:r></w:p>', "\r\n", $content);
+			$striped_content = strip_tags($content);
 
-		return $striped_content;
-    }
-?>
-<?php		
+			return $striped_content;
+		}
+	?>
+	
+				<?php
+					$txtHere  = False;
+					$pdfHere  = False;
+					$docxHere = False;
+					$filename = $_FILES["file"]["tmp_name"];
+					if ($_FILES["file"]["error"] > 0) {
+						echo "<h3>Error: </h3>" . $_FILES["file"]["error"] . "<br />";
+					} else {
+						if ($_FILES["file"]["type"] == "application/pdf") {
+							$filename = $_FILES["file"]["tmp_name"];
+							$handle   = fopen($filename, "r");
+							$contents = fread($handle, filesize($filename));
+							
+							$contents = pdf2text($filename);
+							check_file_font($contents);
+							$pdfHere = True;
+						}
 						
-	$filename = $_FILES["file"]["tmp_name"];
-	if ($_FILES["file"]["error"] > 0){
-									echo "<h3>Error: </h3>" . $_FILES["file"]["error"] . "<br />";
-								  } 
-								  else {
-									if($_FILES["file"]["type"] == "application/pdf"){	
-										//echo "PDF E";
-										$filename = $_FILES["file"]["tmp_name"]; //ja naoga patekata kaj so e socuvan fajlot
-										$handle = fopen($filename, "r"); //go otvara fajlot za da ima pristap do sodrzinata
-										$contents = fread($handle, filesize($filename)); //ja zacuvuva sodrzinata vo promenliva
-										
-										$contents = pdf2text($filename);
+						else if (contains("document", $_FILES["file"]["type"])) {
+							$filename = $_FILES["file"]["tmp_name"];
+							$handle   = fopen($filename, "r");
+							$contents = fread($handle, filesize($filename));
+							
+							$contents = read_docx($filename);
+							check_file_font($contents);
+							$docxHere = True;
+						}
+						
+						else if ($_FILES["file"]["type"] == "text/plain") {
+							$filename = $_FILES["file"]["tmp_name"];
+							$handle   = fopen($filename, "r");
+							$contents = fread($handle, filesize($filename));
+							check_file_font($contents);
+							$txtHere = True;
+						}
+						
+						else {
+							echo "<script> alert('There is no functionality provided for this kind of files! Please insert another type of file.');
+															   window.location ='upload_a_file.php'; </script>";
+						}
+					}
+
+					function contains($needle, $haystack)
+					{
+						return strpos($haystack, $needle) !== false;
+					}
+
+					function check_file_font($contents)
+					{
+						$cont       = trim($contents);
+						$sodrzina   = preg_split('/[\s,]+/', $cont);
+						$sodrzina   = preg_replace('#[[:punct:]]#', ' ', $sodrzina);
+						$flag_font1 = False;
+						
+						foreach ($sodrzina as $d) {
+							
+							$posebno_zbor = str_split($d);
+							foreach ($posebno_zbor as $p) {
+								if (ord($p) >= 65 && ord($p) <= 122)
+									$flag_font1 = True;
+								else if (is_numeric($p)) {
+									continue;
+								} else if (ord($p) == 32)
+									continue;
+							}
+						}
+						
+						if ($flag_font1 == True) {
+							echo "<script> alert('Upload a file in the special font!');
+																	window.location ='upload_a_file.php'; </script>";
+						}
+					}
+					?>
+	
+	 <div class="col-sm-12 col-md-10 col-md-offset-1 col-lg-8 col-lg-offset-2 text-center">
+                <table style="width:100%">
+                    <tr style="background-color: #989898;">
+						<td><b>File name</b></td>
+						<td> 
+							<?php echo $_FILES["file"]["name"];	?>
+						</td>
+					</tr>
+					<tr style="background-color: #A0A0A0;">
+						<td><b>Words</b></td>
+                        <td id="no_words">
+						<?php
+							$line = $contents;
+							if($txtHere == True){
+								$brisi_interpuncii = preg_replace('#[[:punct:]]#', ' ', $contents);
+								$split_strings = preg_split('/[\ \s\,]+/', $brisi_interpuncii);
+								$counter1 = 0;
+								
+								foreach($split_strings as $el){
+									if(!is_numeric($el)){
+										$counter1++;
 									}
-									
-									else if(contains("application/vnd.openxmlformats-officedocument.wordprocessingml.document", $_FILES["file"]["type"])){
-										//echo "DOCX E<br>";
-										$filename = $_FILES["file"]["tmp_name"];
-										$handle = fopen($filename, "r"); 
-										$contents = fread($handle, filesize($filename)); 
-										
-										$contents = read_docx($filename);															
+								}
+								
+								echo $counter1;
+							}
+							else if(($pdfHere == True) || ($docxHere == True)){
+									$line = str_replace("\n", " ", $line);
+									$str = explode(" ", $line);
+
+									function my_word_count($str) {
+									  $mystr = str_replace("\xC2\xAD",'', $str);
+									  return preg_match_all('~[\p{L}\'\-]+~u', $mystr);
 									}
-									
-									else if($_FILES["file"]["type"] == "text/plain"){
-										//echo "TXT E<br>";
-										$filename = $_FILES["file"]["tmp_name"]; 
-										$handle = fopen($filename, "r");
-										$contents = fread($handle, filesize($filename));
-									}
-									/*else if($_FILES["file"]["type"] == "application/msword"){
-										
-										//echo "DOC E<br>";
-										$filename = $_FILES["file"]["tmp_name"];
-										$handle = fopen($filename, "r"); 
-										$contents = fread($handle, filesize($filename)); 
-									}*/
-									else{
-										echo "NEMAME FUNKCIONALNOST ZA DRUGI TIPOVI NA FAJLOVI<br>";
-									}
-								  }
-								  
-								  function contains($needle, $haystack){ 			//da se najde document vo toa ogromnoto ime kaj type 
-										return strpos($haystack, $needle) !== false;
-									}
-	
-	$line= $contents;
-	
-	//words
-	$line = str_replace("\n", " ", $line);
-	$str = explode(" ", $line);
-	$counter1 = 0;
-	foreach($str as $el){
-		if(is_numeric($el))
-			continue;
-		else
-			$counter1++;
-	}
-	
-	echo "<b>Broj na zborovi:</b> " . $counter1;
-	echo "<br>";
-	
-	//numbers
-	$counter2 = 0;
-	foreach($str as $el){
-		if(is_numeric($el))
-			$counter2 ++;
-	}
-	echo "<b>Broj na broevi:</b> " . $counter2 . "\n";
-	echo "<br>";
-	
-	//reading time
-	$contents = preg_replace("#[[:punct:]]#", "", $contents);
-	$str_bez_interp = explode(" ", $contents);
-	echo "<b>Reading time</b>: ";
-	if(count($str_bez_interp)<275){
-		echo "Less than a minute";	
-	}
-	else if(count($str_bez_interp)==275){
-		echo "For a minute";
-	}
-		else{
-	$temp = count($str_bez_interp)/275;
-		echo "Approximately " . round($temp, 1) . " min";
-	}
-	echo "<br>";	
-	
-	//speaking time
-	$contents = preg_replace("#[[:punct:]]#", "", $contents);
-	$str_bez_interp = explode(" ", $contents);
-	echo "<b>Speaking time</b>: ";
-	if(count($str_bez_interp)<180){
-		echo "Less than a minute";	
-	}
-	else if(count($str_bez_interp)==180){
-		echo "For a minute";	
-	}
-	else{
-		$temp = count($str_bez_interp)/180;
-		echo "Approximately " . round($temp, 1) . " min";
-	}
-	echo "<br>";
-	
-	//sentences
-	$counter3 = 0;
-	foreach($str as $s){
-		if(preg_match('/[.!?;]/u', $s)){
-			$counter3 += 1;
-		}
-	}
-	echo "<b>Sentences: </b>" . $counter3; 
-	echo "<br>";
-	
-	//short words
-	$counter4 = 0;
-	$str_i = preg_replace('#[[:punct:]]#', '', $str);
-	foreach($str_i as $s){
-		if(is_numeric($s))
-			continue;
-		if(strlen(utf8_decode($s))>=1 && strlen(utf8_decode($s))<=3)
-		{
-			$counter4 += 1;
-			//echo $s . " ";
-		}
-	}
-	
-	echo "<b>Short words: </b>" . $counter4;
-	echo "<br>";
-	
-	//long words
-	$counter5 = 0;
-	$str_i = preg_replace('#[[:punct:]]#', '', $str);
-	
-	foreach($str_i as $s){
-		if(is_numeric($s))
-			continue;
-		if(strlen(utf8_decode($s))>=7)
-		{
-			$counter5 += 1;
-			//echo $s . " ";
-		}
-	}
-	
-	echo "<b>Long words: </b>" . $counter5;
-	echo "<br>";
-	
-	//whitespaces
-	$count_whitespaces = substr_count($contents, " ");
-	$count_newline = substr_count($contents, "\n");
-	$whitespaces = $count_whitespaces + $count_newline;
-	echo "<b>Whitespaces: </b>" . $whitespaces;
-	echo "<br>";
-	
-	//chars(with spaces)
-	$brisi_nov_red = str_replace("\n", "", $contents);
-	$no_spaces = mb_strlen(utf8_decode($brisi_nov_red)) - $whitespaces;
-	$pom = $no_spaces + $whitespaces;
-	echo "<b>Characters with spaces: </b>" . ($pom+1);
-	echo "<br>";
-	
-	//chars(without spaces)
-	$brisi_nov_red = str_replace("\n", "", $contents);
-	$no_spaces = mb_strlen(utf8_decode($contents)) - $whitespaces;
-	echo "<b>Characters without spaces: </b>" . ($no_spaces+1);
-	echo "<br>";
-	
-	//longest sentence
+									$count_words = my_word_count($contents);
+									echo $count_words;
+							}
+						?>
+					</tr>
+					<tr style="background-color: #A8A8A8;">
+						<td><b>Numbers</b></td>
+						<td>
+						<?php
+							$counter2 = 0;
+							$brisi_interpuncii = preg_replace('#[[:punct:]]#', ' ', $contents);
+							$split_strings = preg_split('/[\ \s\,]+/', $brisi_interpuncii);
+							
+							$str = explode(" ", $brisi_interpuncii);
+							
+							foreach($split_strings as $el){
+								if(is_numeric($el))
+									$counter2++;
+							}
+							echo $counter2;
+						?>
+						</td>
+					</tr>
+					<tr style="background-color: #B0B0B0;">
+						<td><b>Reading time</b></td>
+						<td>
+						<?php
+							$contents = preg_replace("#[[:punct:]]#", "", $contents);
+							$str_bez_interp = explode(" ", $contents);
+							if(count($str_bez_interp)<275){
+								echo "Less than a minute";	
+							}
+							else if(count($str_bez_interp)==275){
+								echo "For a minute";
+							}
+								else{
+							$temp = count($str_bez_interp)/275;
+								echo round($temp, 1) . " min";
+							}	
+						?>
+						</td>
+					</tr>
+					<tr style="background-color: #B8B8B8;">
+						<td><b>Speaking time</b></td>
+						<td>
+						<?php
+						$contents = preg_replace("#[[:punct:]]#", "", $contents);
+						$str_bez_interp = explode(" ", $contents);
+						if(count($str_bez_interp)<180){
+							echo "Less than a minute";	
+						}
+						else if(count($str_bez_interp)==180){
+							echo "For a minute";	
+						}
+						else{
+							$temp = count($str_bez_interp)/180;
+							echo round($temp, 1) . " min";
+						}
+						?>
+						</td>
+					</tr>
+					<tr style="background-color: #C0C0C0;">
+						<td><b>Sentences</b></td>
+						<td>
+						<?php
+							$counter3 = 0;
+							foreach($str as $s){
+								if(preg_match('/[.!?;]/u', $s)){
+									$counter3 += 1;
+								}
+							}
+							echo $counter3; 
+						?>
+						</td>
+					</tr>
+					<tr style="background-color: #C8C8C8;">
+						<td><b>Short words</b></td>
+						<td>
+						<?php
+						$counter4 = 0;
+						$str_i = preg_replace('#[[:punct:]]#', '', $str);
+						foreach($str_i as $s){
+							if(is_numeric($s))
+								continue;
+							if(strlen(utf8_decode($s))>=1 && strlen(utf8_decode($s))<=3)
+							{
+								$counter4 += 1;
+							}
+						}
+						
+						echo $counter4;
+						?>
+						</td>
+					</tr>
+					<tr style="background-color: #D0D0D0;">
+						<td><b>Long words</b></td>
+						<td>
+						<?php
+						$counter5 = 0;
+						$str_i = preg_replace('#[[:punct:]]#', '', $str);
+						
+						foreach($str_i as $s){
+							if(is_numeric($s))
+								continue;
+							if(strlen(utf8_decode($s))>=7)
+							{
+								$counter5 += 1;
+							}
+						}
+						
+						echo $counter5;
+						?>
+						</td>
+					</tr>
+					<tr style="background-color: #D8D8D8;">
+						<td><b>Whitespaces</b></td>
+						<td>
+						<?php
+						if($txtHere == True){
+							$count_whitespaces = substr_count($contents, " ");
+							$count_newline = substr_count($contents, "\n");
+							$whitespaces = $count_whitespaces + $count_newline;
+							echo $whitespaces; 
+						}
+						else if($pdfHere == True){
+							$count_whitespaces = substr_count($contents, " ");
+							$count_newline = mb_substr($contents, 0, "\n", 'UTF-8');
+							$whitespaces = $count_whitespaces + $count_newline;
+							$wh = $whitespaces-2;
+							echo $wh;
+						}
+						else if($docxHere == True){
+							$count_whitespaces = substr_count($contents, " ");
+							$count_newline = mb_substr($contents, 0, "\n", 'UTF-8');
+							$whitespaces = $count_whitespaces + $count_newline;
+							echo $whitespaces;
+						}
+						?>
+						</td>
+					</tr>
+					<tr style="background-color: #E0E0E0;">
+						<td><b>Characters(with spaces)</b></td>
+						<td>
+						<?php
+						$brisi_nov_red = str_replace("\n", "", $contents);
+						$no_spaces = mb_strlen(utf8_decode($brisi_nov_red)) - $whitespaces;
+						$pom = $no_spaces + $whitespaces;
+						echo ($pom+1);
+						?>
+						</td>
+					</tr>
+					<tr style="background-color: #E8E8E8;">
+						<td><b>Characters(without spaces)</b></td>
+						<td>
+						<?php
+							$brisi_nov_red = str_replace("\n", "", $contents);
+							$no_spaces = mb_strlen(utf8_decode($contents)) - $whitespaces;
+							echo ($no_spaces+1);
+						?>
+						</td>
+					</tr>
+					<tr style="background-color: #F0F0F0;">
+						<td><b>Length of longest sentence</b></td>
+						<td>
+						<?php
 								$sobiraj_zborovi = 0;
 								$niza = array(); 
 								$max_niza = 0;
 								
 								for($i = 0; $i < sizeof($str); $i++)
 								{									
-									if(strpos($str[$i], '.')){
+									if(strpos($str[$i], '.') || strpos($str[$i], '?') || strpos($str[$i], '!') || strpos($str[$i], '?!')){
 										$sobiraj_zborovi += mb_strlen($str[$i]);
 										array_push($niza, $sobiraj_zborovi);
 										$sobiraj_zborovi = 0;
@@ -525,7 +683,6 @@
 										$sobiraj_zborovi += mb_strlen($str[$i]);
 									}
 								}
-								//print_r($niza)."<br>";
 									
 								for($j = 0; $j < sizeof($niza); $j++){
 									$max_niza = $niza[0];
@@ -534,17 +691,21 @@
 										$max_niza = $niza[$j];
 								}
 	
-	echo "<b>Longest sentence: </b>" . $max_niza;
-	echo "<br>";
-	
-	//shortest sentence
+								echo $max_niza;
+						?>
+						</td>
+					</tr>
+					<tr style="background-color: #F8F8F8;">
+						<td><b>Length of shortest sentence</b></td>
+						<td>
+						<?php
 								$sobiraj_zborovi = 0;
 								$niza = array(); 
 								$min_niza = 0;
 								
 								for($i = 0; $i < sizeof($str); $i++)
 								{									
-									if(strpos($str[$i], '.')){
+									if(strpos($str[$i], '.') || strpos($str[$i], '?') || strpos($str[$i], '!') || strpos($str[$i], '?!')){
 										$sobiraj_zborovi += mb_strlen($str[$i]);
 										array_push($niza, $sobiraj_zborovi);
 										$sobiraj_zborovi = 0;
@@ -553,7 +714,6 @@
 										$sobiraj_zborovi += mb_strlen($str[$i]);
 									}
 								}
-								//print_r($niza)."<br>";
 									
 								for($j = 0; $j < sizeof($niza); $j++){
 									$min_niza = $niza[0];
@@ -562,17 +722,34 @@
 										$min_niza = $niza[$j];
 								}
 	
-	echo "<b>Shortest sentence: </b>" . $min_niza;
-	echo "<br>";
-	
-	
-	//average words length
-	$sum = 0;
-	$str_i = preg_replace('#[[:punct:]]#', '', $str);
-	foreach($str_i as $s){
-		$sum += mb_strlen(utf8_decode($s));
-	}
-	$pom1 = $sum/count($str_i);
-	echo "<b>Average words length: </b>" . number_format((float)$pom1, 2, '.', '');
-	
-?>
+								echo $min_niza;
+						?>
+						</td>
+					</tr>		
+					<tr style="background-color: #FFFFFF;">
+						<td><b>Average words length</b></td>
+						<td>
+						<?php
+							$sum = 0;
+							$str_i = preg_replace('#[[:punct:]]#', '', $str);
+							
+							foreach($str_i as $s){
+								$sum += mb_strlen(utf8_decode($s));
+							}
+							
+							$pom1 = $sum/count($str_i);
+							echo number_format((float)$pom1, 2, '.', '');
+						?>
+						</td>
+					</tr>
+	               </table>
+            </div><br>
+        </div>
+    </div>
+</div>
+
+<div class="navbar" style="padding-top: 15px; color: dimgray; margin-bottom: 0px; background-color: black; border-radius: 0px; opacity: 0.8; margin-top: 40px;">
+    <p class="text-center">&copy; Copyrights FINKI</p>
+</div>
+</body>
+</html>

@@ -61,7 +61,7 @@
         </div>
     </nav>
 
-    <div class="container" style="margin-top: 80px;">
+     <div class="container" style="margin-top: 80px;">
     <div class="row">
         <div class="col-sm-12 col-lg-12 col-md-12 col-xs-12">
             <a href="compare_two_files.php"><i class="fa fa-arrow-left" aria-hidden="true" style="font-size: 25px; margin-top: -10px; float: left;" ></i></a>
@@ -69,7 +69,7 @@
 			<br>
 
                 <table style="width:100%" class="text-center">
-						    <!-- F-CIJA ZA CITANJE NA TEXT OD PDF -->
+						 <!-- F-CIJA ZA CITANJE NA TEXT OD PDF -->
 									<?php
 										function decodeAsciiHex($input) {
 											$output = "";
@@ -359,16 +359,18 @@
 													if(($fh = fopen($filename, 'r')) !== false ) 
 													{
 														$headers = fread($fh, 0xA00);
+
 														   $n1 = ( ord($headers[0x21C]) - 1 );
 														   $n2 = ( ( ord($headers[0x21D]) - 8 ) * 256 );
 														   $n3 = ( ( ord($headers[0x21E]) * 256 ) * 256 );
 														   $n4 = ( ( ( ord($headers[0x21F]) * 256 ) * 256 ) * 256 );
 														   $textLength = ($n1 + $n2 + $n3 + $n4);
+
 														   $extracted_plaintext = fread($fh, $textLength);
 														   return nl2br($extracted_plaintext);
-														}
-													}   
-												}
+													}
+												}   
+											}
 										?>
 										
 										<!-- F-CIJA ZA CITANJE NA TEXT OD MicrosoftWord FILE .DOCX -->
@@ -400,21 +402,25 @@
 												return $striped_content;
 											}
 										?>
-							
-		<!--FILE 1-->
-                            <?php 
-								  if($_FILES["file1"]["error"] > 0){
+						
+						
+						<?php
+									$txtHere = False;
+									$pdfHere = False;
+									$docxHere = False;
+									
+							      if($_FILES["file1"]["error"] > 0){
 									echo "<h3>Error: </h3>" . $_FILES["file1"]["error"] . "<br />";
 								  } 
 								  else {
-									
+		// FILE 1
 									if($_FILES["file1"]["type"] == "application/pdf"){	
 										$filename = $_FILES["file1"]["tmp_name"];
 										$handle = fopen($filename, "r");
 										$contents = fread($handle, filesize($filename));
 										$contents = pdf2text($filename);
 										check_file_font($contents);
-										
+										$pdfHere = True;
 									}
 									else if($_FILES["file1"]["type"] == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"){
 										$filename = $_FILES["file1"]["tmp_name"];
@@ -422,66 +428,61 @@
 										$contents = fread($handle, filesize($filename));
 										$contents = read_docx($filename);
 										check_file_font($contents);
+										$docxHere = True;
 									}
 									else if($_FILES["file1"]["type"] == "text/plain"){
 										$filename = $_FILES["file1"]["tmp_name"]; 
 										$handle = fopen($filename, "r"); 
-										$contents = fread($handle, filesize($filename)); 
-										check_file_font($contents);
-									}
-									else if($_FILES["file1"]["type"] == "application/msword"){
-										$filename = $_FILES["file1"]["tmp_name"];
-										$handle = fopen($filename, "r"); 
-										$contents = fread($handle, filesize($filename)); 
-										$contents = read_doc_file($filename);
-										check_file_font($contents);
-														
+										$contents = fread($handle, filesize($filename));
+										check_file_font($contents);										
+										$txtHere = True;
 									}
 									else{
-										echo "<script> alert('NEMAME FUNKCIONALNOSTI ZA DRUGI TIPOVI NA FAJLOVI');
+										echo "<script> alert('There is no functionality provided for this kind of files! Please insert another type of file.');
 										   window.location ='compare_two_files.php'; </script>";
 									}
 								  }
-								function contains($needle, $haystack){
-									return strpos($haystack, $needle) !== false;
-								}
-								
-								function check_file_font($contents){
-									$cont = trim($contents);
-									$sodrzina = preg_split('/[\s,]+/', $cont);
-									$sodrzina = preg_replace('#[[:punct:]]#', ' ', $sodrzina);
-									$flag_font1 = False;
+								  function contains($needle, $haystack){
+										return strpos($haystack, $needle) !== false;
+									}
 									
-									foreach($sodrzina as $d){
+									function check_file_font($contents){
+										$cont = trim($contents);
+										$sodrzina = preg_split('/[\s,]+/', $cont);
+										$sodrzina = preg_replace('#[[:punct:]]#', ' ', $sodrzina);
+										$flag_font1 = False;
 										
-										$posebno_zbor = str_split($d);
-											foreach($posebno_zbor as $p){
-												if(ord($p) >= 65 && ord($p) <= 122)
-													continue;
-												else if(is_numeric($p)){
-													continue;
+										foreach($sodrzina as $d){
+											
+											$posebno_zbor = str_split($d);
+												foreach($posebno_zbor as $p){
+													if(ord($p) >= 65 && ord($p) <= 122)
+														$flag_font1 = True;
+													else if(is_numeric($p)){
+														continue;
+													}
+													else if(ord($p) == 32)
+														continue;
 												}
-												else if(ord($p) == 32)
-													continue;
-												else{
-													$flag_font1 = True;
-													break;
-												}
-											}
+										}
+										
+										if($flag_font1 == True){
+											echo "<script> alert('Upload a file in the special font!');
+												window.location ='compare_two_files.php'; </script>";
+										}
 									}
-									
-									if($flag_font1 == True){
-										echo "<script> alert('Upload a file in the standard font!');
-											window.location ='compare_two_files.php'; </script>";
-									}
-								}
-								?>
+							?>
 		<!--FILE 2-->
+						
                             <?php
-								 if($_FILES["file2"]["error"] > 0){
-									echo "<h3>Error: </h3>" . $_FILES["file1"]["error"] . "<br />";
-								  } 
-								  else {
+								$txtHere2 = False;
+								$pdfHere2 = False;
+								$docxHere2 = False;
+								
+								if ($_FILES["file2"]["error"] > 0){
+									echo "<h3>Error: </h3>" . $_FILES["file2"]["error"] . "<br />";
+								} 
+								else {
 									
 									if($_FILES["file2"]["type"] == "application/pdf"){	
 										$filename2 = $_FILES["file2"]["tmp_name"];
@@ -489,27 +490,22 @@
 										$contents2 = fread($handle2, filesize($filename2));
 										$contents2 = pdf2text($filename2);
 										check_file_font($contents2);
+										$pdfHere2 = True;
 									}
 									else if($_FILES["file2"]["type"] == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"){
 										$filename2 = $_FILES["file2"]["tmp_name"];
 										$handle2 = fopen($filename2, "r"); 
 										$contents2 = fread($handle2, filesize($filename2));
-										$contents2 = read_docx($filename2);	
+										$contents2 = read_docx($filename2);
 										check_file_font($contents2);
+										$docxHere2 = True;
 									}
 									else if($_FILES["file2"]["type"] == "text/plain"){
 										$filename2 = $_FILES["file2"]["tmp_name"]; 
 										$handle2 = fopen($filename2, "r"); 
-										$contents2 = fread($handle2, filesize($filename2)); 
+										$contents2 = fread($handle2, filesize($filename2));
 										check_file_font($contents2);
-									}
-									else if($_FILES["file2"]["type"] == "application/msword"){
-										$filename2 = $_FILES["file2"]["tmp_name"];
-										$handle2 = fopen($filename2, "r"); 
-										$contents2 = fread($handle2, filesize($filename2)); 
-										$contents2 = read_doc_file($filename2);
-										check_file_font($contents2);
-														
+										$txtHere2 = True;
 									}
 									else{
 										echo "<script> alert('There is no functionality provided for this kind of files! Please insert another type of file.');
@@ -535,222 +531,252 @@
 							?>
                         </td>
                     </tr>
-		
+					
 		<!--FILE 1-->
 					<tr style="background-color: #A8A8A8;">
                         <td><b>Size</b></td>
                         <td>
-                            <?php 
-								$size = ($_FILES["file1"]["size"] / 1024);
-								echo round($size, 2) . " Kb<br />";	
-							?>
+                            <?php $size = ($_FILES["file1"]["size"] / 1024);
+								echo round($size, 2) . " Kb<br />";	?>
                         </td>
 		<!--FILE 2-->
 						<td>
-                            <?php 
-								$size2 = ($_FILES["file2"]["size"] / 1024);
-								echo round($size2, 2) . " Kb<br />";	
-							?>
-                        </td>
-                    </tr>
-					
-		<!--FILE 1-->					
-					<tr style="background-color: #B0B0B0;">
-                        <td><b>Words</b></td>
-                        <td>
-                            <?php 
-								$pecati = str_word_count($contents);
-								echo $pecati;
-							?>
-                        </td>
-		<!--FILE 2-->
-						<td>
-                            <?php 
-								$pecati2 = str_word_count($contents2);
-								echo $pecati2;
-							?>
+                            <?php $size2 = ($_FILES["file2"]["size"] / 1024);
+								echo round($size2, 2) . " Kb<br />";	?>
                         </td>
                     </tr>
 					
 		<!--FILE 1-->
-                    <tr style="background-color: #B8B8B8;">
-                        <td><b>Numbers</b></td>
+					<tr style="background-color: #B0B0B0;">
+                        <td><b>Words</b></td>
                         <td>
-                           <?php 
+                            <?php
+							$line = $contents;
+							if($txtHere == True){
 								$brisi_interpuncii = preg_replace('#[[:punct:]]#', ' ', $contents);
 								$split_strings = preg_split('/[\ \s\,]+/', $brisi_interpuncii);
-								$count_num = 0;
-								foreach($split_strings as $str){
-									if(is_numeric($str)){
-										$count_num += 1;
+								$counter1 = 0;
+								
+								foreach($split_strings as $el){
+									if(!is_numeric($el)){
+										$counter1++;
 									}
-								}									
-								echo $count_num;
+								}
+								echo $counter1;
+							}
+							else if(($pdfHere == True) || ($docxHere == True)){
+									$line = str_replace("\n", " ", $line);
+									$str = explode(" ", $line);
+
+									function my_word_count($str) {
+									  $mystr = str_replace("\xC2\xAD",'', $str);
+									  return preg_match_all('~[\p{L}\'\-]+~u', $mystr);
+									}
+									$count_words = my_word_count($contents);
+									echo $count_words;
+							}
+						?>
+                        </td>
+		<!--FILE 2-->
+						<td>
+                            <?php 
+								$line2 = $contents2;
+								if($txtHere2 == True){
+									$brisi_interpuncii2 = preg_replace('#[[:punct:]]#', ' ', $contents2);
+									$split_strings2 = preg_split('/[\ \s\,]+/', $brisi_interpuncii2);
+									$counter_file2 = 0;
+									
+									foreach($split_strings2 as $el){
+										if(!is_numeric($el)){
+											$counter_file2++;
+										}
+									}
+									echo $counter_file2;
+								}
+								else if(($pdfHere2 == True) || ($docxHere2 == True)){
+										$line2 = str_replace("\n", " ", $line2);
+										$str2 = explode(" ", $line2);
+
+										$count_words2 = my_word_count($contents2);
+										echo $count_words2;
+								}
+							?>
+                        </td>
+                    </tr>
+                   <tr style="background-color: #B8B8B8;">
+		<!--FILE 1-->
+                        <td><b>Numbers</b></td>
+                        <td>
+                            <?php
+								$counter2 = 0;
+								$brisi_interpuncii = preg_replace('#[[:punct:]]#', ' ', $contents);
+								$split_strings = preg_split('/[\ \s\,]+/', $brisi_interpuncii);
+								
+								foreach($split_strings as $el){
+									if(is_numeric($el))
+										$counter2++;
+								}
+								echo $counter2 . "\n";
 							?>
                         </td>
 		<!--FILE 2-->
 						<td>
-                           <?php 
+                            <?php
+								$counter_numbers2 = 0;
 								$brisi_interpuncii2 = preg_replace('#[[:punct:]]#', ' ', $contents2);
 								$split_strings2 = preg_split('/[\ \s\,]+/', $brisi_interpuncii2);
-								$count_num2 = 0;
-								foreach($split_strings2 as $str2){
-									if(is_numeric($str2)){
-										$count_num2 += 1;
-									}
-								}									
-								echo $count_num2;
+								
+								foreach($split_strings2 as $el2){
+									if(is_numeric($el2))
+										$counter_numbers2 ++;
+								}
+								echo $counter_numbers2;
 							?>
                         </td>
                     </tr>
-					
 		<!--FILE 1-->
                     <tr style="background-color: #C0C0C0;">
                         <td><b>Reading time</b></td>
                         <td>
-                           <?php 
-								$split_strings = preg_split('/[\ \s\,]+/', $contents);
-								if(count($split_strings)<275){
+                            <?php
+								$contents = preg_replace("#[[:punct:]]#", "", $contents);
+								$str_bez_interp = explode(" ", $contents);
+								if(count($str_bez_interp)<275){
 									echo "Less than a minute";	
 								}
-								else if(count($split_strings)==275){
+								else if(count($str_bez_interp)==275){
 									echo "For a minute";
 								}
-								else{
-									$temp = count($split_strings)/275;
-									echo "Approximately " . round($temp, 1) . " min";
+									else{
+								$temp = count($str_bez_interp)/275;
+									echo round($temp, 1) . " min";
 								}
 							?>
                         </td>
-						
 		<!--FILE 2-->
 						<td>
-                           <?php 
-								$split_strings2 = preg_split('/[\ \s\,]+/', $contents2);
-								if(count($split_strings2)<275){
+                            <?php
+								$contents2 = preg_replace("#[[:punct:]]#", "", $contents2);
+								$str_bez_interp2 = explode(" ", $contents2);
+								if(count($str_bez_interp2)<275){
 									echo "Less than a minute";	
 								}
-								else if(count($split_strings2)==275){
+								else if(count($str_bez_interp2)==275){
 									echo "For a minute";
 								}
-								else{
-									$temp2 = count($split_strings2)/275;
-									echo "Approximately " . round($temp2, 1) . " min";
+									else{
+								$temp2 = count($str_bez_interp2)/275;
+									echo round($temp2, 1) . " min";
 								}
 							?>
                         </td>
                     </tr>
-					
 		<!--FILE 1-->
-                    <tr style="background-color: #C8C8C8;">
+					<tr style="background-color: #C8C8C8;">
                         <td><b>Speaking time</b></td>
                         <td>
-                           <?php 
-								$split_strings = preg_split('/[\ \s\,]+/', $contents);
-								if(count($split_strings)<180){
+                            <?php
+								$contents = preg_replace("#[[:punct:]]#", "", $contents);
+								$str_bez_interp = explode(" ", $contents);
+								if(count($str_bez_interp)<180){
 									echo "Less than a minute";	
 								}
-								else if(count($split_strings)==180){
+								else if(count($str_bez_interp)==180){
 									echo "For a minute";	
 								}
 								else{
-									$temp = count($split_strings)/180;
-									echo "Approximately " . round($temp, 1) . " min";
+									$temp = count($str_bez_interp)/180;
+									echo round($temp, 1) . " min";
 								}
 							?>
                         </td>
-						
 		<!--FILE 2-->
 						<td>
-                          <?php 
-								$split_strings2 = preg_split('/[\ \s\,]+/', $contents2);
-								if(count($split_strings2)<180){
+                            <?php
+								$contents2 = preg_replace("#[[:punct:]]#", "", $contents2);
+								$str_bez_interp2 = explode(" ", $contents2);
+								if(count($str_bez_interp2)<180){
 									echo "Less than a minute";	
 								}
-								else if(count($split_strings2)==180){
+								else if(count($str_bez_interp2)==180){
 									echo "For a minute";	
 								}
 								else{
-									$temp2 = count($split_strings2)/180;
-									echo "Approximately " . round($temp2, 1) . " min";
+									$temp2 = count($str_bez_interp2)/180;
+									echo round($temp2, 1) . " min";
 								}
 							?>
                         </td>
                     </tr>
-					
-		<!--FILE 1-->
 					<tr style="background-color: #D0D0D0;">
+		<!--FILE 1-->
                         <td><b>Long words</b></td>
                         <td>
-                          <?php 
-								$brisi_interpuncii = preg_replace('/[^a-zA-Z 0-9]+/', ' ', $contents);
-								$split_strings = preg_split('/[\ \s\,]+/', $brisi_interpuncii);
-								$brojac = 0;
+                            <?php
+								$counter5 = 0;
+								$str_i = preg_replace('#[[:punct:]]#', '', $split_strings);
 								
-								foreach($split_strings as $el){
-									if(strlen($el)>=7){
-										if(!is_numeric($el)){
-											$brojac++;
-										}
+								foreach($str_i as $s){
+									if(is_numeric($s))
+										continue;
+									if(strlen(utf8_decode($s))>=7)
+									{
+										$counter5 += 1;
 									}
 								}
-								echo $brojac;
+								echo $counter5;
 							?>
                         </td>
-						
 		<!--FILE 2-->
 						<td>
-                           <?php 
-								$brisi_interpuncii2 = preg_replace('/[^a-zA-Z 0-9]+/', ' ', $contents2);
-								$split_strings2 = preg_split('/[\ \s\,]+/', $brisi_interpuncii2);
-								$brojac2 = 0;
+                            <?php
+								$counter_longWords2 = 0;
+								$str_i2 = preg_replace('#[[:punct:]]#', '', $split_strings2);
 								
-								foreach($split_strings2 as $el2){
-									if(strlen($el2)>=7){
-										if(!is_numeric($el2)){
-											$brojac2++;
-										}
+								foreach($str_i2 as $s2){
+									if(is_numeric($s2))
+										continue;
+									if(strlen(utf8_decode($s2))>=7)
+									{
+										$counter_longWords2 += 1;
 									}
 								}
-								echo $brojac2;
+								echo $counter_longWords2;
 							?>
                         </td>
                     </tr>
-					
-		<!--FILE 1-->
                     <tr style="background-color: #D8D8D8;">
+		<!--FILE 1-->
                         <td><b>Short words</b></td>
                         <td>
-                          <?php 
-								$brisi_interpuncii = preg_replace('/[^a-zA-Z 0-9]+/', ' ', $contents);
-								$split_strings = preg_split('/[\ \s\,]+/', $brisi_interpuncii);
-								$brojac = 0;
-								
-								foreach($split_strings as $el){
-									if(strlen($el)<=3 && strlen($el)>=1){
-										if(!is_numeric($el)){
-											$brojac++;
-										}	
+                            <?php
+								$counter4 = 0;
+								$str_i = preg_replace('#[[:punct:]]#', '', $split_strings);
+								foreach($str_i as $s){
+									if(is_numeric($s))
+										continue;
+									if(strlen(utf8_decode($s))>=1 && strlen(utf8_decode($s))<=3)
+									{
+										$counter4 += 1;
 									}
 								}
-								echo $brojac;
+								echo $counter4;
 							?>
                         </td>
-		<!--FILE 2-->
 						<td>
-                            <?php 
-								$brisi_interpuncii2 = preg_replace('/[^a-zA-Z 0-9]+/', ' ', $contents2);
-								$split_strings2 = preg_split('/[\ \s\,]+/', $brisi_interpuncii2);
-								$brojac2 = 0;
-								
-								foreach($split_strings2 as $el2){
-									if(strlen($el2)<=3 && strlen($el2)>=1){
-										if(!is_numeric($el2)){
-											$brojac2++;
-										}	
+		<!--FILE 2-->
+                            <?php
+								$counter_shortWords2 = 0;
+								$str_i2 = preg_replace('#[[:punct:]]#', '', $split_strings2);
+								foreach($str_i2 as $s2){
+									if(is_numeric($s2))
+										continue;
+									if(strlen(utf8_decode($s2))>=1 && strlen(utf8_decode($s2))<=3)
+									{
+										$counter_shortWords2 += 1;
 									}
 								}
-								echo $brojac2;
+								echo $counter_shortWords2;
 							?>
                         </td>
                     </tr>
@@ -759,138 +785,177 @@
                     <tr style="background-color: #E0E0E0;">
                         <td><b>Sentences</b></td>
                         <td>
-                            <?php 
-								$remove_new_line = preg_replace('/[\ \n]+/', ' ', $contents);
-								function countSentences($str){
-									return preg_match_all('/[^\s](\.|\!|\?)(?!\w)/', $str, $match);
+                            <?php
+								$counter3 = 0;
+								foreach($split_strings as $s){
+									if(preg_match('/[.!?;]/u', $s)){
+										$counter3 += 1;
+									}
 								}
-									
-								$res = countSentences($remove_new_line);
-								echo $res;
+								echo $counter3; 
 							?>
                         </td>
 		<!--FILE 2-->
 						<td>
-                           <?php 
-								$remove_new_line2 = preg_replace('/[\ \n]+/', ' ', $contents2);	
-								$res2 = countSentences($remove_new_line2);
-								echo $res2;
+                            <?php			
+								$counter_sentences2 = 0;
+								foreach($split_strings2 as $s2){
+									if(preg_match('/[.!?;]/u', $s2)){
+										$counter_sentences2 += 1;
+									}
+								}
+								echo $counter_sentences2;
 							?>
                         </td>
                     </tr>
-					
 		<!--FILE 1-->
-                    <tr style="background-color: #E8E8E8;">
+					<tr style="background-color: #E8E8E8;">
                         <td><b>Whitespaces</b></td>
                         <td>
-                           <?php 
-								$count_whitespaces = $pecati - 1;
-								echo $count_whitespaces;
+                            <?php
+								if($txtHere == True){
+									$count_whitespaces = substr_count($contents, " ");
+									$count_newline = substr_count($contents, "\n");
+									$whitespaces = $count_whitespaces + $count_newline;
+									echo $whitespaces; 
+								}
+								else if($pdfHere == True){
+									$count_whitespaces = substr_count($contents, " ");
+									$count_newline = mb_substr($contents, 0, "\n", 'UTF-8');
+									$whitespaces = $count_whitespaces + $count_newline;
+									$wh = $whitespaces-2;
+									echo $wh;
+								}
+								else if($docxHere == True){
+									$count_whitespaces = substr_count($contents, " ");
+									$count_newline = mb_substr($contents, 0, "\n", 'UTF-8');
+									$whitespaces = $count_whitespaces + $count_newline;
+									echo $whitespaces;
+								}
 							?>
                         </td>
 		<!--FILE 2-->
 						<td>
-                           <?php 
-								$count_whitespaces2 = $pecati2 - 1;
-								echo $count_whitespaces2;
+                            <?php			
+								if($txtHere2 == True){
+									$count_whitespaces2 = substr_count($contents2, " ");
+									$count_newline2 = substr_count($contents2, "\n");
+									$whitespaces2 = $count_whitespaces2 + $count_newline2;
+									echo $whitespaces2; 
+								}
+								else if($pdfHere2 == True){
+									$count_whitespaces2 = substr_count($contents2, " ");
+									$count_newline2 = mb_substr($contents2, 0, "\n", 'UTF-8');
+									$whitespaces2 = $count_whitespaces2 + $count_newline2;
+									$wh2 = $whitespaces2-2;
+									echo $wh2;
+								}
+								else if($docxHere2 == True){
+									$count_whitespaces2 = substr_count($contents2, " ");
+									$count_newline2 = mb_substr($contents, 0, "\n", 'UTF-8');
+									$whitespaces2 = $count_whitespaces2 + $count_newline2;
+									echo $whitespaces2;
+								}
 							?>
                         </td>
                     </tr>
-					
-		<!--FILE 1-->
                     <tr style="background-color: #F0F0F0;">
+		<!--FILE 1-->
                         <td><b>Characters (with spaces)</b></td>
                         <td>
                             <?php 
-								$brisi_nov_red = str_replace("\n", "", $contents);	
-								echo mb_strlen($brisi_nov_red);
+								$brisi_nov_red = str_replace("\n", "", $contents);
+								$no_spaces = mb_strlen(utf8_decode($brisi_nov_red)) - $whitespaces;
+								$pom = $no_spaces + $whitespaces;
+								echo ($pom+1);
 							?>
                         </td>
 		<!--FILE 2-->
 						<td>
-                           <?php 
-								$brisi_nov_red2 = str_replace("\n", "", $contents2);		
-								echo mb_strlen($brisi_nov_red2);
+                            <?php
+								$brisi_nov_red2 = str_replace("\n", "", $contents2);
+								$no_spaces2 = mb_strlen(utf8_decode($brisi_nov_red2)) - $whitespaces2;
+								$pom2 = $no_spaces2 + $whitespaces2;
+								echo ($pom2+1);
 							?>
                         </td>
                     </tr>
-					
+                    
 		<!--FILE 1-->
-                    <tr style="background-color: #F8F8F8;">
+					<tr style="background-color: #F8F8F8;">
                         <td><b>Characters (no spaces)</b></td>
                         <td>
-                           <?php 
-								echo mb_strlen($brisi_nov_red) - $count_whitespaces;
+                            <?php
+								$brisi_nov_red = str_replace("\n", "", $contents);
+								$no_spaces = mb_strlen(utf8_decode($contents)) - $whitespaces;
+								echo ($no_spaces+1);
 							?>
                         </td>
 		<!--FILE 2-->
 						<td>
-                            <?php 
-								echo mb_strlen($brisi_nov_red2) - $count_whitespaces2;
+                            <?php
+								$brisi_nov_red2 = str_replace("\n", "", $contents2);
+								$no_spaces2 = mb_strlen(utf8_decode($contents2)) - $whitespaces2;
+								echo ($no_spaces2+1);
 							?>
                         </td>
                     </tr>
-					
+                    <tr style="background-color: #F8F8F8;">
 		<!--FILE 1-->
-                    <tr style="background-color: #FFFFFF;">
                         <td><b>Length of longest sentence</b></td>
                         <td>
-                            <?php 
-								$remove_new_line = preg_replace('/[\ \n]+/', ' ', $contents);
-								$split_strings = preg_split('/[\s,]+/', $remove_new_line);
+                            <?php
 								$sobiraj_zborovi = 0;
 								$niza = array(); 
 								$max_niza = 0;
 								
 								for($i = 0; $i < sizeof($split_strings); $i++)
 								{									
-									if(strpos($split_strings[$i], '.') || strpos($split_strings[$i], '!') || strpos($split_strings[$i], '?') || strpos($split_strings[$i], '?!')){
-										$sobiraj_zborovi += strlen($split_strings[$i]);
-											array_push($niza, $sobiraj_zborovi);
-											$sobiraj_zborovi = 0;
-										}
-										else{
-											$sobiraj_zborovi += strlen($split_strings[$i]);
-										}
+									if(strpos($split_strings[$i], '.')){
+										$sobiraj_zborovi += mb_strlen($split_strings[$i]);
+										array_push($niza, $sobiraj_zborovi);
+										$sobiraj_zborovi = 0;
 									}
+									else{
+										$sobiraj_zborovi += mb_strlen($split_strings[$i]);
+									}
+								}
 									
-									for($j = 0; $j < sizeof($niza); $j++){
-										$max_niza = $niza[0];
-										
-										if($niza[$j] > $max_niza)
-											$max_niza = $niza[$j];
-									}
-									echo $max_niza;
+								for($j = 0; $j < sizeof($niza); $j++){
+									$max_niza = $niza[0];
+									
+									if($niza[$j] > $max_niza)
+										$max_niza = $niza[$j];
+								}
+								echo $max_niza;
 							?>
                         </td>
 		<!--FILE 2-->
 						<td>
-                            <?php 
-								$remove_new_line2 = preg_replace('/[\ \n]+/', ' ', $contents2);
-								$split_strings2 = preg_split('/[\s,]+/', $remove_new_line2);
+                            <?php
 								$sobiraj_zborovi2 = 0;
 								$niza2 = array(); 
 								$max_niza2 = 0;
 								
 								for($i = 0; $i < sizeof($split_strings2); $i++)
 								{									
-									if(strpos($split_strings2[$i], '.') || strpos($split_strings2[$i], '!') || strpos($split_strings2[$i], '?') || strpos($split_strings2[$i], '?!')){
-										$sobiraj_zborovi2 += strlen($split_strings2[$i]);
-											array_push($niza2, $sobiraj_zborovi2);
-											$sobiraj_zborovi2 = 0;
-										}
-										else{
-											$sobiraj_zborovi2 += strlen($split_strings2[$i]);
-										}
+									if(strpos($split_strings2[$i], '.')){
+										$sobiraj_zborovi2 += mb_strlen($split_strings2[$i]);
+										array_push($niza2, $sobiraj_zborovi2);
+										$sobiraj_zborovi2 = 0;
 									}
+									else{
+										$sobiraj_zborovi2 += mb_strlen($split_strings2[$i]);
+									}
+								}
 									
-									for($j = 0; $j < sizeof($niza2); $j++){
-										$max_niza2 = $niza2[0];
-										
-										if($niza2[$j] > $max_niza2)
-											$max_niza2 = $niza2[$j];
-									}
-									echo $max_niza2;
+								for($j = 0; $j < sizeof($niza2); $j++){
+									$max_niza2 = $niza2[0];
+									
+									if($niza2[$j] > $max_niza2)
+										$max_niza2 = $niza2[$j];
+								}
+								echo $max_niza2;
 							?>
                         </td>
                     </tr>
@@ -899,62 +964,58 @@
                     <tr style="background-color: #FFFFFF;">
                         <td><b>Length of shortest sentence</b></td>
                         <td>
-                           <?php 
-								$remove_new_line = preg_replace('/[\ \n]+/', ' ', $contents);
-									$split_strings = preg_split('/[\s,]+/', $remove_new_line);
-									$sobiraj_zborovi = 0;
-									$niza = array(); 
-									$min_niza = 0;
-									
-									for($i = 0; $i < sizeof($split_strings); $i++)
-									{									
-										if(strpos($split_strings[$i], '.') || strpos($split_strings[$i], '!') || strpos($split_strings[$i], '?') || strpos($split_strings[$i], '?!')){
-											$sobiraj_zborovi += strlen($split_strings[$i]);
-											array_push($niza, $sobiraj_zborovi);
-											$sobiraj_zborovi = 0;
-										}
-										else{
-											$sobiraj_zborovi += strlen($split_strings[$i]);
-										}
+                            <?php			
+								$sobiraj_zborovi = 0;
+								$niza = array(); 
+								$min_niza = 0;
+								
+								for($i = 0; $i < sizeof($split_strings); $i++)
+								{									
+									if(strpos($split_strings[$i], '.')){
+										$sobiraj_zborovi += mb_strlen($split_strings[$i]);
+										array_push($niza, $sobiraj_zborovi);
+										$sobiraj_zborovi = 0;
 									}
-									
-									for($j = 0; $j < sizeof($niza); $j++){
-										$min_niza = $niza[0];
-										
-										if($niza[$j] < $min_niza)
-											$min_niza = $niza[$j];
+									else{
+										$sobiraj_zborovi += mb_strlen($split_strings[$i]);
 									}
-									echo $min_niza;
+								}
+									
+								for($j = 0; $j < sizeof($niza); $j++){
+									$min_niza = $niza[0];
+									
+									if($niza[$j] < $min_niza)
+										$min_niza = $niza[$j];
+								}
+								echo $min_niza;
 							?>
                         </td>
 		<!--FILE 2-->
 						<td>
-                           <?php 
-								$remove_new_line2 = preg_replace('/[\ \n]+/', ' ', $contents2);
-									$split_strings2 = preg_split('/[\s,]+/', $remove_new_line2);
-									$sobiraj_zborovi2 = 0;
-									$niza2 = array(); 
-									$min_niza2 = 0;
-									
-									for($i = 0; $i < sizeof($split_strings2); $i++)
-									{									
-										if(strpos($split_strings2[$i], '.') || strpos($split_strings2[$i], '!') || strpos($split_strings2[$i], '?') || strpos($split_strings2[$i], '?!')){
-											$sobiraj_zborovi2 += strlen($split_strings2[$i]);
-											array_push($niza2, $sobiraj_zborovi2);
-											$sobiraj_zborovi2 = 0;
-										}
-										else{
-											$sobiraj_zborovi2 += strlen($split_strings2[$i]);
-										}
+                            <?php			
+								$sobiraj_zborovi2 = 0;
+								$niza2 = array(); 
+								$min_niza2 = 0;
+								
+								for($i = 0; $i < sizeof($split_strings2); $i++)
+								{									
+									if(strpos($split_strings2[$i], '.')){
+										$sobiraj_zborovi2 += mb_strlen($split_strings2[$i]);
+										array_push($niza2, $sobiraj_zborovi2);
+										$sobiraj_zborovi2 = 0;
 									}
-									
-									for($j = 0; $j < sizeof($niza2); $j++){
-										$min_niza2 = $niza2[0];
-										
-										if($niza2[$j] < $min_niza2)
-											$min_niza2 = $niza2[$j];
+									else{
+										$sobiraj_zborovi2 += mb_strlen($split_strings2[$i]);
 									}
-									echo $min_niza2;
+								}
+									
+								for($j = 0; $j < sizeof($niza2); $j++){
+									$min_niza2 = $niza2[0];
+									
+									if($niza2[$j] < $min_niza2)
+										$min_niza2 = $niza2[$j];
+								}
+								echo $min_niza2;
 							?>
                         </td>
                     </tr>
@@ -963,28 +1024,29 @@
                     <tr style="background-color: #FFFFFF;">
                         <td><b>Average word length</b></td>
                         <td>
-                            <?php 
-									$brisi_interpuncii = preg_replace('/[^a-zA-Z 0-9]+/', ' ', $contents);
-									$split_strings = preg_split('/[\ \s\,]+/', $brisi_interpuncii);
-									$sum = 0;
-									foreach($split_strings as $str){
-										$sum += strlen($str);
-									}
-									$rezultat = ($sum - substr_count($brisi_interpuncii, ' '))/count($split_strings);
-									echo number_format((float)$rezultat, 2, '.', '');
+                            <?php
+								$sum = 0;
+								$str_i = preg_replace('#[[:punct:]]#', '', $split_strings);
+								
+								foreach($str_i as $s){
+									$sum += mb_strlen(utf8_decode($s));
+								}
+								
+								$pom1 = $sum/count($str_i);
+								echo number_format((float)$pom1, 2, '.', '');
 							?>
                         </td>
-		<!--FILE 2-->
 						<td>
-                            <?php 
-									$brisi_interpuncii2 = preg_replace('/[^a-zA-Z 0-9]+/', ' ', $contents2);
-									$split_strings2 = preg_split('/[\ \s\,]+/', $brisi_interpuncii2);
-									$sum2 = 0;
-									foreach($split_strings2 as $str2){
-										$sum2 += strlen($str2);
-									}
-									$rezultat2 = ($sum2 - substr_count($brisi_interpuncii2, ' '))/count($split_strings2);
-									echo number_format((float)$rezultat2, 2, '.', '');
+                            <?php
+								$sum2 = 0;
+								$str_i2 = preg_replace('#[[:punct:]]#', '', $split_strings2);
+								
+								foreach($str_i2 as $s2){
+									$sum2 += mb_strlen(utf8_decode($s2));
+								}
+								
+								$pom12 = $sum2/count($str_i2);
+								echo number_format((float)$pom12, 2, '.', '');
 							?>
                         </td>
                     </tr>

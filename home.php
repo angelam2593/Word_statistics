@@ -16,6 +16,7 @@
     <style>
         body{
             background-image: url("img/words-blog2.jpg");
+			font-family: "Calibri";
         }
         hr {
             border: 0;
@@ -39,8 +40,6 @@
         };
     </script>
 	
-	
-	<!--Script za brojacot-->
 	<script>
 		 var showText = function (target, message, index, interval) {
 			 if (index < message.length) {
@@ -50,10 +49,7 @@
 		 }
 
 		 $(function () {
-			 //var brojac = 0;
-			 //var text = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer...";
-			 
-			 showText("#Lorem", "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer...", 0, 50);
+			 showText("#Lorem", "Word Statistics is a web sollution that displays diverse information about the textual data from an uploaded file. It contains three functionality options where files can be analyzed in a standard or a specific font.", 0, 50);
 		 });		
 	</script>
 </head>
@@ -71,6 +67,9 @@
                     <img src="img/word_stats.png" class="img-responsive" style="margin-top: -5px;">
                 </a>
             </div>
+			<a href="info.php">
+				<i class="fa fa-info-circle pull-right" aria-hidden="true" style="color: white; font-size: 25px; padding-top: 14px;"></i>
+			</a>
         </div>
     </nav>
 
@@ -106,7 +105,7 @@
             </div>
             <div class="col-sm-3 col-lg-offset-1 col-md-offset-1 col-sm-offset-1" style="margin-right: 30px;">
                 <center><img src="img/word1.png" class="img-responsive"></center>
-                <h4 class="text-center"><b>DOC File<br>(DOCument file)</b><br><small>Extensions: .doc .docm .docx</small></h4>
+                <h4 class="text-center"><b>DOC File<br>(DOCument file)</b><br><small>Extensions: .doc .docx</small></h4>
                 <p class="text-justify">A file created in a version of Microsoft's word processing application prior
                     to Microsoft Office 2007. DOC files use a .DOC extension and differ from text files (.TXT extension)
                     because they contain proprietary codes that must be opened in Word or software that reads the Word
