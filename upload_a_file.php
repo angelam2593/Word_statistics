@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>Word Statistics</title>
@@ -78,7 +79,7 @@
 				</div>
 							
 				<div class="col-sm-9 col-sm-offset-1 col-lg-offset-1" style="background-color: white; padding-top: 30px; padding-bottom: 40px; padding-left: 40px; border: 1px solid lightgray; border-radius: 8px;">
-					<form action="upload_a_file_analysis_utf_8.php" method="post" enctype="multipart/form-data">
+					<form action="upload_a_file_analysis.php" method="post" enctype="multipart/form-data">
 					  <label for="file"><h3><b>Choose a file:</b></h3></label>
 					  <input type="file" name="file" id="uploadFile"/>
 					  <br />

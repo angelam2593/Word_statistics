@@ -343,10 +343,7 @@
     }
 ?>
 <?php		
-	//ke imame 4 promenlivi: pdfHere, docxHere, docHere, txtHere
-	$txtHere = False;
-	$pdfHere = False;
-	$docxHere = False;
+						
 	$filename = $_FILES["file"]["tmp_name"];
 	if ($_FILES["file"]["error"] > 0){
 									echo "<h3>Error: </h3>" . $_FILES["file"]["error"] . "<br />";
@@ -359,7 +356,6 @@
 										$contents = fread($handle, filesize($filename)); //ja zacuvuva sodrzinata vo promenliva
 										
 										$contents = pdf2text($filename);
-										$pdfHere = True;
 									}
 									
 									else if(contains("application/vnd.openxmlformats-officedocument.wordprocessingml.document", $_FILES["file"]["type"])){
@@ -368,8 +364,7 @@
 										$handle = fopen($filename, "r"); 
 										$contents = fread($handle, filesize($filename)); 
 										
-										$contents = read_docx($filename);	
-										$docxHere = True;
+										$contents = read_docx($filename);															
 									}
 									
 									else if($_FILES["file"]["type"] == "text/plain"){
@@ -377,7 +372,6 @@
 										$filename = $_FILES["file"]["tmp_name"]; 
 										$handle = fopen($filename, "r");
 										$contents = fread($handle, filesize($filename));
-										$txtHere = True;
 									}
 									/*else if($_FILES["file"]["type"] == "application/msword"){
 										
@@ -396,33 +390,20 @@
 									}
 	
 	$line= $contents;
+	
 	//words
-	if($txtHere == True){
-		$line = str_replace("\n", " ", $line);
-		$str = explode(" ", $line);
-		$counter1 = 0;
-		foreach($str as $el){
-			if(is_numeric($el))
-				continue;
-			else
-				$counter1++;
-		}
-		
-		echo "<b>Broj na zborovi:</b> " . $counter1;
-		echo "<br>";
+	$line = str_replace("\n", " ", $line);
+	$str = explode(" ", $line);
+	$counter1 = 0;
+	foreach($str as $el){
+		if(is_numeric($el))
+			continue;
+		else
+			$counter1++;
 	}
-	else if(($pdfHere == True) || ($docxHere == True)){
-			$line = str_replace("\n", " ", $line);
-			$str = explode(" ", $line);
-
-			function my_word_count($str) {
-			  $mystr = str_replace("\xC2\xAD",'', $str);
-			  return preg_match_all('~[\p{L}\'\-]+~u', $mystr);
-			}
-			$count_words = my_word_count($contents);
-			echo "<b>Broj na zborovi:</b> " . $count_words;
-			echo "<br>";
-	}
+	
+	echo "<b>Broj na zborovi:</b> " . $counter1;
+	echo "<br>";
 	
 	//numbers
 	$counter2 = 0;
