@@ -17,6 +17,23 @@
             background-image: url("img/words-blog2.jpg");
         }
     </style>
+	
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$('#upload').bind("click",function() 
+			{ 
+				var val = $('#file').val(); 
+				if(val=='') 
+				{ 
+					alert("Empty input file"); 
+				} 
+				else{
+					$('#upload').post("upload_a_file_analysis.php");
+				}
+				return false; 
+			}); 
+		});
+	</script>
 </head>
 
 <body>
@@ -28,7 +45,7 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="index.html">
+            <a class="navbar-brand" href="home.php">
                 <img src="img/word_stats.png" class="img-responsive" style="margin-top: -5px;">
             </a>
         </div>
@@ -52,11 +69,10 @@
 					<br>
 				   <label for="file"><h4>Write a word to search:</h4></label> <input type="input" name="word" id="word" /> 
 				   <br/>
-
             </div>
 
             <div class="col-sm-3 text-center col-lg-offset-1"><br><br><br>
-				<input type="submit" name="submit" value="C O U N T" class="btn-info btn-block btn-lg" style="margin-bottom: 0px;"/>
+				<input type="submit" name="submit" value="C O U N T" class="btn-info btn-block btn-lg" id="upload" style="margin-bottom: 0px;"/>
             </div>
 			</form>
         </div>

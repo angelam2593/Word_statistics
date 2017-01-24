@@ -34,7 +34,7 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="index.html">
+            <a class="navbar-brand" href="home.php">
                 <img src="img/word_stats.png" class="img-responsive" style="margin-top: -5px;">
             </a>
         </div>

@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>Word Statistics</title>
 
     <script src="js/jquery.js"></script>
@@ -17,6 +18,23 @@
             background-image: url("img/words-blog2.jpg");
         }
     </style>
+	
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$('#upload').bind("click",function() 
+			{ 
+				var val = $('#uploadFile').val(); 
+				if(val=='') 
+				{ 
+					alert("Empty input file"); 
+				} 
+				else{
+					$('#upload').post("upload_a_file_analysis.php");
+				}
+				return false; 
+			}); 
+		});
+	</script>
 </head>
 
 <body>
@@ -45,11 +63,11 @@
                     <img src="img/file1.png" class="img-responsive">
                 </div>
 				<br>
-                <form action="uploadTxt.php" method="post" enctype="multipart/form-data">
+                <form action="upload_a_file_analysis.php" method="post" enctype="multipart/form-data">
 				  <label for="file">Choose a file:</label>
-				  <input type="file" name="file" id="file" /> 
+				  <input type="file" name="file" id="uploadFile" />
 				  <br />
-				  <input type="submit" name="submit" value="Submit" />
+				  <input type="submit" name="submit" value="Submit" id="upload"/>
 				</form>
 				<br>
             </div>

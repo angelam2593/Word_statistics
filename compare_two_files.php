@@ -17,6 +17,33 @@
             background-image: url("img/words-blog2.jpg");
         }
     </style>
+	
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$('#upload').bind("click",function() 
+			{ 
+				var val = $('#file1').val(); 
+				var val2 = $('#file2').val(); 
+				
+				if(val=='' && val2=='') 
+				{ 
+					alert("Empty input FILE 1 and FILE 2"); 
+				} 
+				else if(val=='' && val2!='') 
+				{ 
+					alert("Empty input FILE 1"); 
+				}
+				else if(val!='' && val2=='') 
+				{ 
+					alert("Empty input FILE 2"); 
+				}
+				else{
+					$('#upload').post("upload_a_file_analysis.php");
+				}
+				return false; 
+			}); 
+		});
+	</script>
 </head>
 
 <body>
@@ -56,13 +83,13 @@
 						</div>
 						<h4>Choose second file:</h4>
 						<input type="file" name="file2" id="file2" />
-						
 					</div>
 				
             </div>
 
 			<div class="col-sm-12 text-center"><br><br><br>
-				<button class="btn-info btn-lg">C O M P A R E &thinsp;&thinsp; F I L E S</button>	
+				<!--<button class="btn-info btn-lg" id="upload" type="submit" name="submit">C O M P A R E &thinsp;&thinsp; F I L E S</button>-->
+				<input type="submit" name="submit" value="C O M P A R E &thinsp;&thinsp; F I L E S" id="upload"/>
 			</div>
 		</form>
 		</div>
