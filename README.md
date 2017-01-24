@@ -1,1 +1,2 @@
-# Word_statistics
+# WordStatistics
+Proekt po predmetot Delovna Praksa
