@@ -115,10 +115,18 @@
 					<th>Word has appeared in the text</th>
 					<td>
 						<?php
-							$split_strings = preg_split('/[\ \n\,]+/', $contents);
+							$split_strings = preg_split('/[\s,]+/', $contents);
+							
+							$test = str_replace(array('?',"!",",",";",":",".","@","#","$","%","^","&","*","(",")","[","]","{","}","<",">","/","\\","+","-","=","_","~","`","|","\'","\""), "", $contents);	
+							//samo za " i ' ne raboti
+							
+							//echo $test;
+							$razdeli_test = preg_split('/[\s,]+/', $test);			//sekoj zbor da ima value
+							
 							$counter1 = 0;
 							$word = strtolower($word);
-							foreach($split_strings as $str){
+							
+							foreach($razdeli_test as $str){
 								if(strcmp($word, strtolower($str)) == 0){
 									$counter1+=1;
 								}
@@ -197,7 +205,7 @@
 </div><br><br><br>
 <br><br>
 
-<div class="navbar navbar-fixed-bottom navbar-inverse" style="padding-top: 15px; color: dimgray">
+<div class="navbar" style="padding-top: 15px; color: dimgray; margin-bottom: 0px; background-color: black; border-radius: 0px; opacity: 0.8; margin-top: 40px;">
     <p class="text-center">&copy; Copyrights FINKI</p>
 </div>
 </body>

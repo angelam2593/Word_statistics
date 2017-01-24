@@ -38,6 +38,22 @@
             location.href = "search_a_word_in_a_file.php";
         };
     </script>
+	
+	
+	<!--Script za brojacot-->
+	<script>
+		var showText = function (target, message, index, interval) {
+			if (index < message.length) {
+				$(target).append(message[index++]);
+				setTimeout(function () { showText(target, message, index, interval); }, interval);
+			}
+		}
+
+		$(function () {
+			showText("#Lorem", "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer...", 0, 50);
+			document.getElementById("#brojac").innerHTML = "brojac";
+		});
+</script>
 </head>
 
 <body>
@@ -65,9 +81,10 @@
 					</div>
 
 					<div class="col-sm-6" style="background-color: white; padding-top: 20px; padding-bottom: 15px;">
-						<h1><b>WORD STATISTICS</b></h1><br>
-						<h4>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's
-							standard dummy text ever since the 1500s, when an unknown printer</h4><br>
+						<h1 style="float: left;"><b>WORD STATISTICS</b></h1>
+						<br><br><br><br>
+						<h4 id="Lorem"></h4>
+							<br>
 						<button class="btn btn-info" type="submit" id="btnUpload" onclick="location.href = 'upload_a_file.php';" style="margin-right: 5px;"><b>Upload a file</b></button>
 						<button class="btn btn-success" style="margin-right: 5px;" type="submit" id="btnCompare" onclick="location.href = 'compare_two_files.php';"><b>Compare two files</b></button>
 						<button class="btn btn-warning" type="submit" id="btnSearchWord" onclick="location.href = 'search_a_word_in_file.php';"><b>Search word in a file</b></button>
@@ -112,7 +129,7 @@
     </div><br><br><br>
     <br><br>
 
-    <div class="navbar navbar-fixed-bottom navbar-inverse" style="padding-top: 15px; color: dimgray">
+    <div class="navbar" style="padding-top: 15px; color: dimgray; margin-bottom: 0px; background-color: black; border-radius: 0px; opacity: 0.8; margin-top: 40px;">
         <p class="text-center">&copy; Copyrights FINKI</p>
     </div>
 </body>

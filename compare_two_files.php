@@ -96,7 +96,7 @@
     </div><br><br><br>
     <br><br>
 
-    <div class="navbar navbar-fixed-bottom navbar-inverse" style="padding-top: 15px; color: dimgray">
+    <div class="navbar navbar-fixed-bottom" style="padding-top: 15px; color: dimgray; margin-bottom: 0px; background-color: black; border-radius: 0px; opacity: 0.8; margin-top: 40px;">
         <p class="text-center">&copy; Copyrights FINKI</p>
     </div>
 </body>

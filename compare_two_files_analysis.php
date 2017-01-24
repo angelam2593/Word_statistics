@@ -167,8 +167,11 @@
                         <td><b>Numbers</b></td>
                         <td>
                             <?php
-								$split_strings = preg_split('/[\ \n\,]+/', $contents);
+								$remove_new_line = preg_replace('/[\ \n]+/', ' ', $contents);
 								$count_num = 0;
+								$brisi_interpuncii = preg_replace('/[^a-zA-Z 0-9]+/', ' ', $contents);
+								$split_strings = preg_split('/[\ \n\,]+/', $brisi_interpuncii);			//pravi niza od zborovi
+								
 								foreach($split_strings as $str){
 									if(is_numeric($str)){
 										$count_num += 1;
@@ -179,14 +182,17 @@
                         </td>
 						<td>
                             <?php
-								$split_strings = preg_split('/[\ \n\,]+/', $contents2);
+								$remove_new_line = preg_replace('/[\ \n]+/', ' ', $contents2);
 								$count_num = 0;
+								$brisi_interpuncii = preg_replace('/[^a-zA-Z 0-9]+/', ' ', $contents2);
+								$split_strings = preg_split('/[\ \n\,]+/', $brisi_interpuncii);			//pravi niza od zborovi
+								
 								foreach($split_strings as $str){
 									if(is_numeric($str)){
 										$count_num += 1;
 									}
 								}
-								echo $count_num;	
+								echo $count_num;
 							?>
                         </td>
                     </tr>
@@ -260,22 +266,32 @@
                         <td><b>Long words</b></td>
                         <td>
                             <?php
-								$split_strings = preg_split('/[\ \n\,]+/', $contents);
+								$brisi_interpuncii = preg_replace('/[^a-zA-Z 0-9]+/', ' ', $contents);
+								$split_strings = preg_split('/[\ \n\,]+/', $brisi_interpuncii);			//pravi niza od zborovi
 								$brojac = 0;
+								
 								foreach($split_strings as $el){
-									if(strlen($el)>=7)
-										$brojac++;
+									if(strlen($el)>=7){
+										if(!is_numeric($el)){
+											$brojac++;
+										}
+									}
 								}
 								echo $brojac;
 							?>
                         </td>
 						<td>
                             <?php
-								$split_strings = preg_split('/[\ \n\,]+/', $contents2);
+								$brisi_interpuncii = preg_replace('/[^a-zA-Z 0-9]+/', ' ', $contents2);
+								$split_strings = preg_split('/[\ \n\,]+/', $brisi_interpuncii);			//pravi niza od zborovi
 								$brojac = 0;
+								
 								foreach($split_strings as $el){
-									if(strlen($el)>=7)
-										$brojac++;
+									if(strlen($el)>=7){
+										if(!is_numeric($el)){
+											$brojac++;
+										}
+									}
 								}
 								echo $brojac;
 							?>
@@ -285,22 +301,32 @@
                         <td><b>Short words</b></td>
                         <td>
                             <?php
-								$split_strings = preg_split('/[\ \n\,]+/', $contents);
+								$brisi_interpuncii = preg_replace('/[^a-zA-Z 0-9]+/', ' ', $contents);
+								$split_strings = preg_split('/[\ \n\,]+/', $brisi_interpuncii);			//pravi niza od zborovi
 								$brojac = 0;
+								
 								foreach($split_strings as $el){
-									if(strlen($el)<=3)
-										$brojac++;
+									if(strlen($el)<=3){
+										if(!is_numeric($el)){
+											$brojac += 1;
+										}
+									}
 								}
 								echo $brojac;
 							?>
                         </td>
 						<td>
                             <?php
-								$split_strings = preg_split('/[\ \n\,]+/', $contents2);
+								$brisi_interpuncii = preg_replace('/[^a-zA-Z 0-9]+/', ' ', $contents2);
+								$split_strings = preg_split('/[\ \n\,]+/', $brisi_interpuncii);			//pravi niza od zborovi
 								$brojac = 0;
+								
 								foreach($split_strings as $el){
-									if(strlen($el)<=3)
-										$brojac++;
+									if(strlen($el)<=3){
+										if(!is_numeric($el)){
+											$brojac += 1;
+										}
+									}
 								}
 								echo $brojac;
 							?>
@@ -328,9 +354,8 @@
                         <td><b>Whitespaces</b></td>
                         <td>
                             <?php
-								$split_strings = preg_split('/[\ \n\,]+/', $contents);
-								$br = count($split_strings) - 1;
-								echo $br; 
+								$count_whitespaces = substr_count($contents, ' ');
+								echo $count_whitespaces; 
 							?>
                         </td>
 						<td>
@@ -342,16 +367,9 @@
                         </td>
                     </tr>
                     <tr>
-                        <td><b>Characters (with whitespaces)</b></td>
+                        <td><b>Characters (with spaces)</b></td>
                         <td>
-                            <?php
-								$strArray = count_chars($contents,0);
-								$brojacFile1 = 0;
-								foreach ($strArray as $key=>$value){
-									$brojacFile1 += $value;
-							   }
-								echo $brojacFile1; 
-							?>
+                            <?php echo strlen($contents); ?>
                         </td>
 						<td>
                             <?php
@@ -365,11 +383,14 @@
                         </td>
                     </tr>
                     <tr>
-                        <td><b>Characters (without whitespaces)</b></td>
+                        <td><b>Characters (no spaces)</b></td>
                         <td>
                             <?php
-								$resultNoWhitespacesChars = $brojacFile1 - $br;
-								echo $resultNoWhitespacesChars; 
+								$remove_new_line = preg_replace('/[\ \n]+/', ' ', $contents);		//sandra
+								$split_strings = preg_split('/[\ \n\,]+/', $remove_new_line);			//pravi niza od zborovi
+								
+								$resultNoWhitespacesChars = strlen($remove_new_line) - $count_whitespaces;
+								echo $resultNoWhitespacesChars;
 							?>
                         </td>
 						<td>
@@ -383,49 +404,117 @@
                         <td><b>Length of longest sentence</b></td>
                         <td>
                             <?php
-								$sentences = preg_split('/(?<=[.?!])\s+(?=[a-z])/i', $contents); //tuka gi vadi tocka, zapirka, prasalnik, izvincnik
-								$max = strlen($sentences[0]);
-								foreach($sentences as $recenica){
-									if(strlen($recenica) > $max)
-										$max = strlen($recenica);
+								$remove_new_line = preg_replace('/[\ \n]+/', ' ', $contents);
+								$split_strings = preg_split('/[\s,]+/', $remove_new_line);
+								$sobiraj_zborovi = 0;
+								$niza = array(); 
+								
+								for($i = 0; $i < sizeof($split_strings); $i++)
+								{									
+									if(strpos($split_strings[$i], '.')){
+										$sobiraj_zborovi += strlen($split_strings[$i]);
+										array_push($niza, $sobiraj_zborovi);
+										$sobiraj_zborovi = 0;
+									}
+									else{
+										$sobiraj_zborovi += strlen($split_strings[$i]);
+									}
 								}
-								echo $max;
+								
+								for($j = 0; $j < sizeof($niza); $j++){
+									$max_niza = $niza[0];
+									
+									if($niza[$j] > $max_niza)
+										$max_niza = $niza[$j];
+								}
+								echo $max_niza;
 							?>
                         </td>
 						<td>
                             <?php
-								$sentences = preg_split('/(?<=[.?!])\s+(?=[a-z])/i', $contents2); //tuka gi vadi tocka, zapirka, prasalnik, izvincnik
-								$max = strlen($sentences[0]);
-								foreach($sentences as $recenica){
-									if(strlen($recenica) > $max)
-										$max = strlen($recenica);
+								$remove_new_line = preg_replace('/[\ \n]+/', ' ', $contents2);
+								$split_strings = preg_split('/[\s,]+/', $remove_new_line);
+								$sobiraj_zborovi = 0;
+								$niza = array(); 
+								
+								for($i = 0; $i < sizeof($split_strings); $i++)
+								{									
+									if(strpos($split_strings[$i], '.')){
+										$sobiraj_zborovi += strlen($split_strings[$i]);
+										array_push($niza, $sobiraj_zborovi);
+										$sobiraj_zborovi = 0;
+									}
+									else{
+										$sobiraj_zborovi += strlen($split_strings[$i]);
+									}
 								}
-								echo $max;
+								
+								for($j = 0; $j < sizeof($niza); $j++){
+									$max_niza = $niza[0];
+									
+									if($niza[$j] > $max_niza)
+										$max_niza = $niza[$j];
+								}
+								echo $max_niza;
 							?>
                         </td>
                     </tr>
                     <tr>
                         <td><b>Length of shortest sentence</b></td>
                         <td>
-                            <?php
-								$sentences = preg_split('/(?<=[.?!])\s+(?=[a-z])/i', $contents); //tuka gi vadi tocka, zapirka, prasalnik, izvincnik
-								$min = strlen($sentences[0]);
-								foreach($sentences as $recenica){
-									if(strlen($recenica) < $min)
-										$min = strlen($recenica);
+                            <?php			
+								$remove_new_line = preg_replace('/[\ \n]+/', ' ', $contents);
+								$split_strings = preg_split('/[\s,]+/', $remove_new_line);
+								$sobiraj_zborovi = 0;
+								$niza = array(); 
+								
+								for($i = 0; $i < sizeof($split_strings); $i++)
+								{									
+									if(strpos($split_strings[$i], '.')){
+										$sobiraj_zborovi += strlen($split_strings[$i]);
+										array_push($niza, $sobiraj_zborovi);
+										$sobiraj_zborovi = 0;
+									}
+									else{
+										$sobiraj_zborovi += strlen($split_strings[$i]);
+									}
 								}
-								echo $min;
+								
+								for($j = 0; $j < sizeof($niza); $j++){
+									$min_niza = $niza[0];
+									
+									if($niza[$j] < $min_niza)
+										$min_niza = $niza[$j];
+								}
+								echo $min_niza;
 							?>
                         </td>
 						<td>
-                            <?php
-								$sentences = preg_split('/(?<=[.?!])\s+(?=[a-z])/i', $contents2); //tuka gi vadi tocka, zapirka, prasalnik, izvincnik
-								$min = strlen($sentences[0]);
-								foreach($sentences as $recenica){
-									if(strlen($recenica) < $min)
-										$min = strlen($recenica);
+                            <?php			
+								$remove_new_line = preg_replace('/[\ \n]+/', ' ', $contents2);
+								$split_strings = preg_split('/[\s,]+/', $remove_new_line);
+								$sobiraj_zborovi = 0;
+								$niza = array(); 
+								
+								for($i = 0; $i < sizeof($split_strings); $i++)
+								{									
+									if(strpos($split_strings[$i], '.')){
+										$sobiraj_zborovi += strlen($split_strings[$i]);
+										array_push($niza, $sobiraj_zborovi);
+										$sobiraj_zborovi = 0;
+									}
+									else{
+										$sobiraj_zborovi += strlen($split_strings[$i]);
+									}
 								}
-								echo $min;
+								
+								for($j = 0; $j < sizeof($niza); $j++){
+									$min_niza = $niza[0];
+									
+									if($niza[$j] < $min_niza)
+										$min_niza = $niza[$j];
+								}
+								echo $min_niza;
 							?>
                         </td>
                     </tr>
@@ -438,8 +527,8 @@
 								foreach($split_strings as $str){
 									$sum += strlen($str);
 								}
-								$result = $sum/count($split_strings);
-								echo round($result, 2); 
+								$result = ($sum - substr_count($contents, ' '))/count($split_strings);
+								echo number_format((float)$result, 2, '.', ''); 
 							?>
                         </td>
 						<td>
@@ -449,8 +538,8 @@
 								foreach($split_strings as $str){
 									$sum += strlen($str);
 								}
-								$result = $sum/count($split_strings);
-								echo round($result, 2); 
+								$result = ($sum - substr_count($contents2, ' '))/count($split_strings);
+								echo number_format((float)$result, 2, '.', ''); 
 							?>
                         </td>
                     </tr>
@@ -463,7 +552,7 @@
     </div><br><br><br>
     <br><br>
 
-    <div class="navbar navbar-fixed-bottom navbar-inverse" style="padding-top: 15px; color: dimgray">
+    <div class="navbar" style="padding-top: 15px; color: dimgray; margin-bottom: 0px; background-color: black; border-radius: 0px; opacity: 0.8; margin-top: 40px;">
         <p class="text-center">&copy; Copyrights FINKI</p>
     </div>
 </body>

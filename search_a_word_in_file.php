@@ -23,9 +23,19 @@
 			$('#upload').bind("click",function() 
 			{ 
 				var val = $('#file').val(); 
-				if(val=='') 
+				var val_word = $('#word').val();
+				
+				if(val=='' && val_word=='') 
+				{ 
+					alert("Empty input file and word for search"); 
+				} 
+				else if(val=='' && val_word!='') 
 				{ 
 					alert("Empty input file"); 
+				} 
+				else if(val!='' && val_word=='') 
+				{ 
+					alert("Empty input word for search"); 
 				} 
 				else{
 					$('#upload').post("upload_a_file_analysis.php");
@@ -67,7 +77,8 @@
 					<h4>Choose a file:</h4>
 					<input type="file" name="file" id="file" /> 				 
 					<br>
-				   <label for="file"><h4>Write a word to search:</h4></label> <input type="input" name="word" id="word" /> 
+				   <label for="file"><h4>Write a word to search:</h4></label> 
+				   <input type="input" name="word" id="word" /> 
 				   <br/>
             </div>
 
@@ -81,7 +92,7 @@
 </div><br><br><br>
 <br><br>
 
-<div class="navbar navbar-fixed-bottom navbar-inverse" style="padding-top: 15px; color: dimgray">
+<div class="navbar navbar-fixed-bottom" style="padding-top: 15px; color: dimgray; margin-bottom: 0px; background-color: black; border-radius: 0px; opacity: 0.8; margin-top: 40px;">
     <p class="text-center">&copy; Copyrights FINKI</p>
 </div>
 </body>

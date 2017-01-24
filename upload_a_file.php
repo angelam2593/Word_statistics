@@ -55,17 +55,17 @@
 
 <div class="container" style="margin-top: 110px;">
     <div class="row">
-        <div class="col-sm-12">
+        <div class="col-sm-11">
             <h2><b>File statistics</b></h2><br><br>
 
-            <div class="col-sm-6" style="background-color: white; padding-top: 30px; padding-bottom: 40px; border: 1px solid gray; border-radius: 8px;">
-                <div class="col-sm-3">
-                    <img src="img/file1.png" class="img-responsive">
-                </div>
-				<br>
+			<div class="col-sm-2">
+				<img src="img/upload_file.png" class="img-responsive"/>
+			</div>
+						
+            <div class="col-sm-5 col-sm-offset-1 col-lg-offset-1" style="background-color: white; padding-top: 30px; padding-bottom: 40px; padding-left: 40px; border: 1px solid lightgray; border-radius: 8px;">
                 <form action="upload_a_file_analysis.php" method="post" enctype="multipart/form-data">
-				  <label for="file">Choose a file:</label>
-				  <input type="file" name="file" id="uploadFile" />
+				  <label for="file"><h3><b>Choose a file:</b></h3></label>
+				  <input type="file" name="file" id="uploadFile"/>
 				  <br />
 				  <input type="submit" name="submit" value="Submit" id="upload"/>
 				</form>
@@ -75,7 +75,7 @@
     </div>
 </div>
 
-<div class="navbar navbar-fixed-bottom navbar-inverse" style="padding-top: 15px; color: dimgray">
+<div class="navbar navbar-fixed-bottom" style="padding-top: 15px; color: dimgray; margin-bottom: 0px; background-color: black; border-radius: 0px; opacity: 0.8; margin-top: 40px;">
     <p class="text-center">&copy; Copyrights FINKI</p>
 </div>
 </body>
