@@ -39,6 +39,8 @@
                 <img src="img/word_stats.png" class="img-responsive" style="margin-top: -5px;">
             </a>
         </div>
+		
+		
     </div>
 </nav>
 
@@ -46,6 +48,7 @@
     <div class="row">
         <div class="col-sm-12">
             <h2><b>File statistics</b></h2><br><br>
+			
 
             <div class="col-lg-2 col-sm-2 col-md-2 col-lg-offset-1 col-md-offset-1 col-sm-offset-1">
                 <img src="img/my_documents.png" class="img-responsive">
@@ -337,7 +340,75 @@
 				}
 				?> 
 				
+				<!-- F-CIJA ZA CITANJE NA TEXT OD MicrosoftWord FILE .DOC -->
+				<?php
+					function read_doc_file($filename) {
+						 if(file_exists($filename))
+						{
+							if(($fh = fopen($filename, 'r')) !== false ) 
+							{
+								$headers = fread($fh, 0xA00);
 
+								   // 1 = (ord(n)*1) ; Document has from 0 to 255 characters
+								   $n1 = ( ord($headers[0x21C]) - 1 );
+
+								   // 1 = ((ord(n)-8)*256) ; Document has from 256 to 63743 characters
+								   $n2 = ( ( ord($headers[0x21D]) - 8 ) * 256 );
+
+								   // 1 = ((ord(n)*256)*256) ; Document has from 63744 to 16775423 characters
+								   $n3 = ( ( ord($headers[0x21E]) * 256 ) * 256 );
+
+								   // 1 = (((ord(n)*256)*256)*256) ; Document has from 16775424 to 4294965504 characters
+								   $n4 = ( ( ( ord($headers[0x21F]) * 256 ) * 256 ) * 256 );
+
+								   // Total length of text in the document
+								   $textLength = ($n1 + $n2 + $n3 + $n4);
+
+								   $extracted_plaintext = fread($fh, $textLength);
+
+								   // simple print character stream without new lines
+								   //echo $extracted_plaintext;
+
+								   // if you want to see your paragraphs in a new line, do this
+								   return nl2br($extracted_plaintext);
+								   // need more spacing after each paragraph use another nl2br
+								}
+							}   
+							}
+				?>
+				
+				<!-- F-CIJA ZA CITANJE NA TEXT OD MicrosoftWord FILE .DOCX -->
+				<?php
+					function read_docx($filename){
+						$striped_content = '';
+						$content = '';
+
+						if(!$filename || !file_exists($filename)) return false;
+
+						$zip = zip_open($filename);
+						if (!$zip || is_numeric($zip)) return false;
+
+						while ($zip_entry = zip_read($zip)) {
+
+							if (zip_entry_open($zip, $zip_entry) == FALSE) continue;
+
+							if (zip_entry_name($zip_entry) != "word/document.xml") continue;
+
+							$content .= zip_entry_read($zip_entry, zip_entry_filesize($zip_entry));
+
+							zip_entry_close($zip_entry);
+						}
+						zip_close($zip);      
+						$content = str_replace('</w:r></w:p></w:tc><w:tc>', " ", $content);
+						$content = str_replace('</w:r></w:p>', "\r\n", $content);
+						$striped_content = strip_tags($content);
+
+						return $striped_content;
+					}
+				?>
+				
+				
+				
             <div class="col-sm-7 col-md-7 col-lg-7 text-center col-lg-offset-1 col-md-offset-1 col-sm-offset-1">
                 <table style="width:100%">
                     <tr>
@@ -353,28 +424,47 @@
 							<?php
 								if ($_FILES["file"]["error"] > 0){
 									echo "<h3>Error: </h3>" . $_FILES["file"]["error"] . "<br />";
-								  } else {
-									
-									//echo "<br><br>PROVERKI:" . "<br />"; //ovie mozam so SWITCH da gi napravam i treba da gi namestam za info kako da se prikazuva
+								  } 
+								  else {
 									if($_FILES["file"]["type"] == "application/pdf"){	
 										//echo "PDF E";
 										$filename = $_FILES["file"]["tmp_name"]; //ja naoga patekata kaj so e socuvan fajlot
 										$handle = fopen($filename, "r"); //go otvara fajlot za da ima pristap do sodrzinata
 										$contents = fread($handle, filesize($filename)); //ja zacuvuva sodrzinata vo promenliva
 										
-										$result = pdf2text($filename);
-										//echo $result . "<br/>";											//go printa textot od pdf file-ot
+										$contents = pdf2text($filename);
 										
-										$pecati = str_word_count($result);
-										echo $pecati . "<br/>";										
+										$pecati = str_word_count($contents);
+										echo $pecati;
 									}
 									
-									else if(contains("document", $_FILES["file"]["type"])){
+									else if(contains("application/vnd.openxmlformats-officedocument.wordprocessingml.document", $_FILES["file"]["type"])){
+										//echo "DOCX E<br>";
+										$filename = $_FILES["file"]["tmp_name"];
+										$handle = fopen($filename, "r"); 
+										$contents = fread($handle, filesize($filename)); 
+										
+										$contents = read_docx($filename);
+																			
+										$pecati = str_word_count($contents);
+										echo $pecati;
+									}
+
+
+									
+									/*else if($_FILES["file"]["type"] == "doc"){
 										//echo "DOC E<br>";
 										$filename = $_FILES["file"]["tmp_name"];
 										$handle = fopen($filename, "r"); 
 										$contents = fread($handle, filesize($filename)); 
-									}
+										
+										$contents = read_doc_file($filename);
+										
+										$pecati = str_word_count($contents);
+										echo $pecati;	
+									}*/
+									
+									
 									
 									else if($_FILES["file"]["type"] == "text/plain"){
 										//echo "TXT E<br>";
@@ -384,6 +474,20 @@
 										
 										$pecati = str_word_count($contents);
 										echo $pecati;
+									}
+									else if($_FILES["file"]["type"] == "application/msword"){
+										
+										//echo "DOC E<br>";
+										$filename = $_FILES["file"]["tmp_name"];
+										$handle = fopen($filename, "r"); 
+										$contents = fread($handle, filesize($filename)); 
+										
+										$contents = read_doc_file($filename);
+										
+										$pecati = str_word_count($contents);
+										echo $pecati;	
+										
+										//echo "NEMAME FUNKCIONALNOST ZA DRUGI TIPOVI NA FAJLOVI<br>";
 									}
 									else{
 										echo "NEMAME FUNKCIONALNOST ZA DRUGI TIPOVI NA FAJLOVI<br>";
@@ -396,37 +500,23 @@
 								?>
                         </td>
                     </tr>
+					
                     <tr>
                         <td><b>Numbers</b></td>
                         <td id="no_numbers">
 							<?php
-								if($_FILES["file"]["type"] == "text/plain"){
-									$remove_new_line = preg_replace('/[\ \n]+/', ' ', $contents);		//sandra
-									$count_num = 0;
-									$brisi_interpuncii = preg_replace('/[^a-zA-Z 0-9]+/', ' ', $contents);
+									//$remove_new_line = preg_replace('/[\ \n]+/', ' ', $contents);		//sandra
+									//$count_num = 0;
+									//echo $contents;
+									$brisi_interpuncii = preg_replace('#[[:punct:]]#', ' ', $contents);
 									$split_strings = preg_split('/[\ \n\,]+/', $brisi_interpuncii);			//pravi niza od zborovi
-									
+									$count_num = 0;
 									foreach($split_strings as $str){
 										if(is_numeric($str)){
 											$count_num += 1;
 										}
 									}									
 									echo $count_num;
-								}
-								
-								else if($_FILES["file"]["type"] == "application/pdf"){
-									$remove_new_line = preg_replace('/[\ \n]+/', ' ', $result);		//sandra
-									$count_num = 0;
-									$brisi_interpuncii = preg_replace('/[^a-zA-Z 0-9]+/', ' ', $result);
-									$split_strings = preg_split('/[\ \n\,]+/', $brisi_interpuncii);			//pravi niza od zborovi
-									
-									foreach($split_strings as $str){
-										if(is_numeric($str)){
-											$count_num += 1;
-										}
-									}									
-									echo $count_num;
-								}
 							?>
 						</td>
                     </tr>
@@ -434,7 +524,7 @@
                         <td><b>Reading time</b></td>
                         <td id="reading_time">
 							<?php
-								if($_FILES["file"]["type"] == "text/plain"){
+								
 									$split_strings = preg_split('/[\ \n\,]+/', $contents);
 									if(count($split_strings)<275){
 										echo "Less than a minute";	
@@ -446,21 +536,6 @@
 										$temp = count($split_strings)/275;
 										echo "Approximately " . round($temp, 1) . " min";
 									}
-								}
-								
-								else if($_FILES["file"]["type"] == "application/pdf"){
-									$split_strings = preg_split('/[\ \n\,]+/', $result);
-									if(count($split_strings)<275){
-										echo "Less than a minute";	
-									}
-									else if(count($split_strings)==275){
-										echo "For a minute";
-									}
-									else{
-										$temp = count($split_strings)/275;
-										echo "Approximately " . round($temp, 1) . " min";
-									}
-								}
 							?>
 						</td>
                     </tr>
@@ -468,7 +543,6 @@
                         <td><b>Speaking time</b></td>
                         <td id="speaking_time">
 							<?php
-							if($_FILES["file"]["type"] == "text/plain"){
 								$split_strings = preg_split('/[\ \n\,]+/', $contents);
 								if(count($split_strings)<180){
 									echo "Less than a minute";	
@@ -480,21 +554,6 @@
 									$temp = count($split_strings)/180;
 									echo "Approximately " . round($temp, 1) . " min";
 								}
-							}
-							
-							else if($_FILES["file"]["type"] == "application/pdf"){
-								$split_strings = preg_split('/[\ \n\,]+/', $result);
-								if(count($split_strings)<180){
-									echo "Less than a minute";	
-								}
-								else if(count($split_strings)==180){
-									echo "For a minute";	
-								}
-								else{
-									$temp = count($split_strings)/180;
-									echo "Approximately " . round($temp, 1) . " min";
-								}
-							}
 						?>
 						</td>
                     </tr>
@@ -502,35 +561,18 @@
                         <td><b>Short words</b></td>
                         <td id="short_words">
 							<?php
-								if($_FILES["file"]["type"] == "text/plain"){
-									$brisi_interpuncii = preg_replace('/[^a-zA-Z 0-9]+/', ' ', $contents);
-									$split_strings = preg_split('/[\ \n\,]+/', $brisi_interpuncii);			//pravi niza od zborovi
-									$brojac = 0;
-									
-									foreach($split_strings as $el){
-										if(strlen($el)<=3){
-											if(!is_numeric($el)){
-												$brojac += 1;
-											}
-										}
-									}
-									echo $brojac - 1;
-								}
+								$brisi_interpuncii = preg_replace('/[^a-zA-Z 0-9]+/', ' ', $contents);
+								$split_strings = preg_split('/[\ \n\,]+/', $brisi_interpuncii);			//pravi niza od zborovi
+								$brojac = 0;
 								
-								else if($_FILES["file"]["type"] == "application/pdf"){
-									$brisi_interpuncii_pdf = preg_replace('/[^a-zA-Z 0-9]+/', ' ', $result);
-									$split_strings_pdf = preg_split('/[\ \n\,]+/', $brisi_interpuncii_pdf);			//pravi niza od zborovi
-									$brojac_pdf = 0;
-									
-									foreach($split_strings_pdf as $el){
-										if(strlen($el)<=3){
-											if(!is_numeric($el)){
-												$brojac_pdf += 1;
-											}
-										}
+								foreach($split_strings as $el){
+									if(strlen($el)<=3 && strlen($el)>=1){
+										if(!is_numeric($el)){
+											$brojac++;
+										}	
 									}
-									echo $brojac_pdf - 1;
 								}
+								echo $brojac;
 							?>
 						</td>
                     </tr>
@@ -538,34 +580,18 @@
                         <td><b>Long words</b></td>
                         <td id="long_words">
 							<?php
-								if($_FILES["file"]["type"] == "text/plain"){
-									$brisi_interpuncii = preg_replace('/[^a-zA-Z 0-9]+/', ' ', $contents);
-									$split_strings = preg_split('/[\ \n\,]+/', $brisi_interpuncii);			//pravi niza od zborovi
-									$brojac = 0;
-									
-									foreach($split_strings as $el){
-										if(strlen($el)>=7){
-											if(!is_numeric($el)){
-												$brojac++;
-											}
+								$brisi_interpuncii = preg_replace('/[^a-zA-Z 0-9]+/', ' ', $contents);
+								$split_strings = preg_split('/[\ \n\,]+/', $brisi_interpuncii);			//pravi niza od zborovi
+								$brojac = 0;
+								
+								foreach($split_strings as $el){
+									if(strlen($el)>=7){
+										if(!is_numeric($el)){
+											$brojac++;
 										}
 									}
-									echo $brojac;
 								}
-								else if($_FILES["file"]["type"] == "application/pdf"){
-									$brisi_interpuncii = preg_replace('/[^a-zA-Z 0-9]+/', ' ', $result);
-									$split_strings = preg_split('/[\ \n\,]+/', $brisi_interpuncii);			//pravi niza od zborovi
-									$brojac = 0;
-									
-									foreach($split_strings as $el){
-										if(strlen($el)>=7){
-											if(!is_numeric($el)){
-												$brojac++;
-											}
-										}
-									}
-									echo $brojac;
-								}
+								echo $brojac;
 							?>
 						</td>
                     </tr>
@@ -573,56 +599,32 @@
                         <td><b>Sentences</b></td>
                         <td id="no_sentences">
 							<?php
-								if($_FILES["file"]["type"] == "text/plain"){
-									$remove_new_line = preg_replace('/[\ \n]+/', ' ', $contents);
-								
-									function countSentences($str){
-										return preg_match_all('/[^\s](\.|\!|\?)(?!\w)/', $str, $match);
-									}
-									
-									$res = countSentences($remove_new_line);
-									echo $res; 
+								$remove_new_line = preg_replace('/[\ \n]+/', ' ', $contents);
+								function countSentences($str){
+									return preg_match_all('/[^\s](\.|\!|\?)(?!\w)/', $str, $match);
 								}
-								else if($_FILES["file"]["type"] == "application/pdf"){
-									$remove_new_line = preg_replace('/[\ \n]+/', ' ', $result);
-								
-									function countSentences($str){
-										return preg_match_all('/[^\s](\.|\!|\?)(?!\w)/', $str, $match);
-									}
 									
-									$res = countSentences($remove_new_line);
-									echo $res; 
-								}
+								$res = countSentences($remove_new_line);
+								echo $res; 
 							?>
 						</td>
                     </tr>
                     <tr>
-                        <td><b>Whitespaces</b></td>
+                        <td><b>Whitespaces</b></td>													
                         <td>
-							<?php
-								if($_FILES["file"]["type"] == "text/plain"){
-									$remove_new_line = preg_replace('/[\ \n]+/', ' ', $contents);
-									$count_whitespaces = substr_count($remove_new_line, " ");
-									echo $count_whitespaces; 
-								}
-								else if($_FILES["file"]["type"] == "application/pdf"){
-									$remove_new_line = preg_replace('/[\ \n]+/', ' ', $result);
-									$count_whitespaces = substr_count($remove_new_line, " ");
-									echo $count_whitespaces - 1; 
-								}
+							<?php																	//SMENETO
+								$count_whitespaces = $pecati - 1;
+								echo $count_whitespaces;
+								
 							?>
 						</td>
                     </tr>
                     <tr>
                         <td><b>Characters (with spaces)</b></td>
                         <td>
-							<?php 
-								if($_FILES["file"]["type"] == "text/plain"){
-									echo strlen($contents);
-								}
-								else if($_FILES["file"]["type"] == "application/pdf"){
-									echo $count_whitespaces + (strlen($remove_new_line) - $count_whitespaces) - 1;
-								}
+							<?php 	
+								$brisi_nov_red = str_replace("\n", "", $contents);							//SMENETO		
+								echo mb_strlen($brisi_nov_red);
 							?>
 						</td>
                     </tr>
@@ -630,20 +632,7 @@
                     <td><b>Characters (no spaces)</b></td>
                         <td id="no_chars_without_whitespaces">
 							<?php
-								if($_FILES["file"]["type"] == "text/plain"){
-									$remove_new_line = preg_replace('/[\ \n]+/', ' ', $contents);
-									$split_strings = preg_split('/[\ \n\,]+/', $remove_new_line);			//pravi niza od zborovi
-									
-									$resultNoWhitespacesChars = strlen($remove_new_line) - $count_whitespaces;
-									echo $resultNoWhitespacesChars;
-								}
-								else if($_FILES["file"]["type"] == "application/pdf"){
-									$remove_new_line_pdf = preg_replace('/[\ \n]+/', ' ', $result);
-									$split_strings = preg_split('/[\ \n\,]+/', $remove_new_line_pdf);			//pravi niza od zborovi
-									
-									$noWhitespaces_pdf = strlen($remove_new_line_pdf) - $count_whitespaces;
-									echo $noWhitespaces_pdf;
-								}
+								echo mb_strlen($brisi_nov_red) - $count_whitespaces;						//SMENETO
 							?>
 						</td>
                     </tr>
@@ -651,17 +640,16 @@
                         <td><b>Length of longest sentence</b></td>
                         <td>
 							<?php
-								if($_FILES["file"]["type"] == "text/plain"){
-									$remove_new_line = preg_replace('/[\ \n]+/', ' ', $contents);
-									$split_strings = preg_split('/[\s,]+/', $remove_new_line);
-									$sobiraj_zborovi = 0;
-									$niza = array(); 
-									$max_niza = 0;
-									
-									for($i = 0; $i < sizeof($split_strings); $i++)
-									{									
-										if(strpos($split_strings[$i], '.')){
-											$sobiraj_zborovi += strlen($split_strings[$i]);
+								$remove_new_line = preg_replace('/[\ \n]+/', ' ', $contents);
+								$split_strings = preg_split('/[\s,]+/', $remove_new_line);
+								$sobiraj_zborovi = 0;
+								$niza = array(); 
+								$max_niza = 0;
+								
+								for($i = 0; $i < sizeof($split_strings); $i++)
+								{									
+									if(strpos($split_strings[$i], '.')){
+										$sobiraj_zborovi += strlen($split_strings[$i]);
 											array_push($niza, $sobiraj_zborovi);
 											$sobiraj_zborovi = 0;
 										}
@@ -669,6 +657,7 @@
 											$sobiraj_zborovi += strlen($split_strings[$i]);
 										}
 									}
+									//print_r($niza)."<br>";
 									
 									for($j = 0; $j < sizeof($niza); $j++){
 										$max_niza = $niza[0];
@@ -677,34 +666,6 @@
 											$max_niza = $niza[$j];
 									}
 									echo $max_niza;
-								}
-								else if($_FILES["file"]["type"] == "application/pdf"){
-									$remove_new_line = preg_replace('/[\ \n]+/', ' ', $result);
-									$split_strings = preg_split('/[\s,]+/', $remove_new_line);
-									$sobiraj_zborovi = 0;
-									$niza = array(); 
-									$max_niza = 0;
-									
-									for($i = 0; $i < sizeof($split_strings); $i++)
-									{									
-										if(strpos($split_strings[$i], '.')){
-											$sobiraj_zborovi += strlen($split_strings[$i]);
-											array_push($niza, $sobiraj_zborovi);
-											$sobiraj_zborovi = 0;
-										}
-										else{
-											$sobiraj_zborovi += strlen($split_strings[$i]);
-										}
-									}
-									
-									for($j = 0; $j < sizeof($niza); $j++){
-										$max_niza = $niza[0];
-										
-										if($niza[$j] > $max_niza)
-											$max_niza = $niza[$j];
-									}
-									echo $max_niza;
-								}
 							?>
 						</td>
                     </tr>
@@ -712,7 +673,6 @@
                         <td><b>Length of shortest sentence</b></td>
                         <td id="shortest_sentence">
 							<?php			
-								if($_FILES["file"]["type"] == "text/plain"){
 									$remove_new_line = preg_replace('/[\ \n]+/', ' ', $contents);
 									$split_strings = preg_split('/[\s,]+/', $remove_new_line);
 									$sobiraj_zborovi = 0;
@@ -738,59 +698,21 @@
 											$min_niza = $niza[$j];
 									}
 									echo $min_niza;
-								}
-								else if($_FILES["file"]["type"] == "application/pdf"){
-									$remove_new_line = preg_replace('/[\ \n]+/', ' ', $result);
-									$split_strings = preg_split('/[\s,]+/', $remove_new_line);
-									$sobiraj_zborovi = 0;
-									$niza = array(); 
-									$min_niza = 0;
-									
-									for($i = 0; $i < sizeof($split_strings); $i++)
-									{									
-										if(strpos($split_strings[$i], '.')){
-											$sobiraj_zborovi += strlen($split_strings[$i]);
-											array_push($niza, $sobiraj_zborovi);
-											$sobiraj_zborovi = 0;
-										}
-										else{
-											$sobiraj_zborovi += strlen($split_strings[$i]);
-										}
-									}
-									
-									for($j = 0; $j < sizeof($niza); $j++){
-										$min_niza = $niza[0];
-										
-										if($niza[$j] < $min_niza)
-											$min_niza = $niza[$j];
-									}
-									echo $min_niza;
-								}
 							?>
 						</td>
                     </tr>
                     <tr>
-                        <td><b>Average word length</b></td>
+                        <td><b>Average words length</b></td>
                         <td id="average_word_length">
 							<?php
-								if($_FILES["file"]["type"] == "text/plain"){
-									$split_strings = preg_split('/[\ \n\,]+/', $contents);
+									$brisi_interpuncii = preg_replace('/[^a-zA-Z 0-9]+/', ' ', $contents);
+									$split_strings = preg_split('/[\ \n\,]+/', $brisi_interpuncii);
 									$sum = 0;
 									foreach($split_strings as $str){
 										$sum += strlen($str);
 									}
-									$rezultat = ($sum - substr_count($contents, ' '))/count($split_strings);
+									$rezultat = ($sum - substr_count($brisi_interpuncii, ' '))/count($split_strings);
 									echo number_format((float)$rezultat, 2, '.', ''); 
-								}
-								else if($_FILES["file"]["type"] == "application/pdf"){
-									$split_strings = preg_split('/[\ \n\,]+/', $result);
-									$sum = 0;
-									foreach($split_strings as $str){
-										$sum += strlen($str);
-									}
-									$rezultat = ($sum - substr_count($result, ' '))/count($split_strings);
-									echo number_format((float)$rezultat, 2, '.', ''); 
-								}
 							?>
 						</td>
                     </tr>
@@ -800,7 +722,7 @@
     </div>
 </div>
 
-<div class="navbar" style="padding-top: 15px; color: dimgray; margin-bottom: 0px; background-color: black; border-radius: 0px; opacity: 0.8; margin-top: 40px;">
+<div class="navbar navbar-fixed-bottom" style="padding-top: 15px; color: dimgray; margin-bottom: 0px; background-color: black; border-radius: 0px; opacity: 0.8; margin-top: 40px;">
     <p class="text-center">&copy; Copyrights FINKI</p>
 </div>
 </body>

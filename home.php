@@ -42,18 +42,20 @@
 	
 	<!--Script za brojacot-->
 	<script>
-		var showText = function (target, message, index, interval) {
-			if (index < message.length) {
-				$(target).append(message[index++]);
-				setTimeout(function () { showText(target, message, index, interval); }, interval);
-			}
-		}
+		 var showText = function (target, message, index, interval) {
+			 if (index < message.length) {
+				 $(target).append(message[index++]);
+				 setTimeout(function () { showText(target, message, index, interval); }, interval);
+			 }
+		 }
 
-		$(function () {
-			showText("#Lorem", "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer...", 0, 50);
-			document.getElementById("#brojac").innerHTML = "brojac";
-		});
-</script>
+		 $(function () {
+			 //var brojac = 0;
+			 //var text = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer...";
+			 
+			 showText("#Lorem", "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer...", 0, 50);
+		 });		
+	</script>
 </head>
 
 <body>
@@ -81,8 +83,10 @@
 					</div>
 
 					<div class="col-sm-6" style="background-color: white; padding-top: 20px; padding-bottom: 15px;">
-						<h1 style="float: left;"><b>WORD STATISTICS</b></h1>
-						<br><br><br><br>
+						<h1 style="float: left;"><b>WORD STATISTICS</b></h1>    <h4 id="brojac" class="text-right"></h4>
+						<br>
+						
+						<br><br>
 						<h4 id="Lorem"></h4>
 							<br>
 						<button class="btn btn-info" type="submit" id="btnUpload" onclick="location.href = 'upload_a_file.php';" style="margin-right: 5px;"><b>Upload a file</b></button>
